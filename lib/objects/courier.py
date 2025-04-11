@@ -14,14 +14,12 @@ class Courier:
         self.position = position
         self.target_position = Vector2(0, 0)
         self.grid_assigned = False
-
         self.carrying = []
         self.shift = None
         self.speed = 300
         self.queue_index = None
         self.assigned_vehicle = None
         self.font = pygame.font.SysFont("Arial", 16)
-
         self.image = load_image(image_path, (32, 32))
 
     def request_slot(self, box_pile):

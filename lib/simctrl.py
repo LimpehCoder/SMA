@@ -195,12 +195,10 @@ class CourierController:
         # Reset daily
         if hour == 6 and minute == 0 and day != self.last_day:
             self.reset_daily_state(day)
-
         # Spawn
         if hour == 7 and not self.spawned:
             self.spawn(day)
             self.spawned = True
-
         # Stream into scene
         self.stream_pending(dt)
 
@@ -208,11 +206,15 @@ class CourierController:
         for courier in self.sorting_area.couriers:
             if courier.type == self.courier_type:
                 courier.update(dt)
+       # Ensure idle couriers are positioned visually
+        self.sorting_area.assign_idle_positions()  
 
     def manage_box_pickups(self):
         pile = self.sorting_area.box_pile
         for courier in self.sorting_area.couriers:
             if courier.type != self.courier_type:
+                continue
+            if courier.queue_index is not None or courier.status in ["Move_to_Queue", "Queuing"]:
                 continue
             if courier.status in ["Idle", "Ready"] and pile:
                 courier.request_slot(pile)

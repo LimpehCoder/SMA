@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from base_scene import BaseScene
 import pygame
+from pygame.math import Vector2
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 class SortingAreaScene(BaseScene):
