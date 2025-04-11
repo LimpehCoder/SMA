@@ -1,4 +1,6 @@
 from spawner import spawn_vehicles, spawn_couriers, spawn_boxes, CYCLE_TIMES
+from scenes.carpark_scene import CarparkScene
+from scenes.sortingarea_scene import SortingAreaScene
 
 class SceneManager:
     def __init__(self):
@@ -17,10 +19,14 @@ class SceneManager:
     def handle_event(self, event):
         if self.current_scene:
             self.scenes[self.current_scene].handle_event(event)  # Forward events to current scene
-
-    def update(self, dt, clock):
-        if self.current_scene:
-            self.scenes[self.current_scene].update(dt, clock)  # Update only the current scene
+    
+    def handle_event_all(self, event):
+        for scene in self.scenes.values():
+            scene.handle_event(event)
+    
+    def update_all(self, dt, clock):
+        for scene in self.scenes.values():
+            scene.update(dt, clock)  # Update all scenes, not just the current one
 
     def render(self, screen):
         if self.current_scene:

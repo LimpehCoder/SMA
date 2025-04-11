@@ -11,7 +11,7 @@ class SortingAreaScene(BaseScene):
     def __init__(self, carpark_ref):
         self.carpark = carpark_ref  # Reference to the carpark scene (used to access vans/cars)
         self.bg_color = (60, 70, 90)  # Background color for the canvas
-        self.name = "SortingArea_Daily"  # Scene identifier
+        self.name = "SortingArea"  # Scene identifier
         self.couriers = []  # List of couriers in this scene
         self.boxes = []  # List of boxes currently in the sorting area
         self.spawned_today = False  # Tracks whether couriers have been spawned today

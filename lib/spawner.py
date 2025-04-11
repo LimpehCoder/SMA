@@ -1,27 +1,20 @@
 import pygame
 import random
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from pygame.math import Vector2
 
-IMAGE_CACHE = {}  # Cache to store loaded and scaled images
+from objects.courier import Courier  # Import Courier class from courier module
+from objects.van import Van
+from objects.car import Car  # Import vehicle classes from vehicles module
+from objects.box import Box  # Import Box class from box module
+
 CYCLE_TIMES = {
     "ACycle": 8,
     "BCycle": 13,
     "NCycle": 18
 }
-def load_image(name, size=(32, 32)):
-    path = os.path.join("..", "images", name)  # Resolve relative path to image
-
-    if (name, size) in IMAGE_CACHE:
-        return IMAGE_CACHE[(name, size)]  # Return cached version if already loaded
-
-    if pygame.display.get_surface() is None:
-        raise RuntimeError(f"Cannot load '{name}' before display is initialized.")  # Prevent loading before display
-
-    raw_image = pygame.image.load(path).convert_alpha()  # Load image and preserve alpha channel
-    scaled = pygame.transform.scale(raw_image, size)  # Resize image to desired size
-    IMAGE_CACHE[(name, size)] = scaled  # Store scaled image in cache
-    return scaled  # Return image
 
 COURIER_ENTRY_POINT = pygame.Vector2(-50, 300)  # Starting position (offscreen)
 COURIER_ENTRY_TARGET = pygame.Vector2(150, 300)  # Entry target position on screen

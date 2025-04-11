@@ -9,7 +9,10 @@ import pygame_gui
 # --- Import core components from simctrl.py ---
 from simctrl import SceneManager, SimulationClock, SimulationController
 from scenes import sortingarea_scene, carpark_scene, citydistrict_scene, control_panel_stats
+from scenes.carpark_scene import CarparkScene
+from scenes.base_scene import BaseScene
 
+from scenes.sortingarea_scene import SortingAreaScene
 # Initialize scenes and controller
 scene_manager = SceneManager()  # Create the global scene manager that handles switching and tracking active scenes
 carpark = carpark_scene.CarparkScene()  # Instantiate the carpark scene
@@ -21,7 +24,6 @@ pygame.init()  # Initialize all imported Pygame modules
 screen = pygame.display.set_mode((1280, 720))  # Create a window of size 1280x720
 clock = pygame.time.Clock()  # Track time per frame for consistent simulation speed
 sim_clock = SimulationClock()  # Custom clock to simulate in-game time progression
-
 # Screen and simulation constants
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720  # Dimensions used throughout the GUI
 FPS = 60  # Frame rate cap
@@ -38,13 +40,13 @@ SPRITE_PATH = "assets/sprites/"  # Base path for sprite images
 HOUSE_GRID = [(x, y) for x in range(0, 900, 30) for y in range(0, 900, 30)]  # Grid of delivery points for houses
 
 # Register scenes
-scene_manager.add_scene("Carpark", carpark_scene)  # Add the carpark scene to the manager
-scene_manager.add_scene("SortingArea_Daily", sorting_area_scene)  # Add sorting area scene
+scene_manager.add_scene("Carpark", carpark)  # Add the carpark scene to the manager
+scene_manager.add_scene("SortingArea", sorting_area_scene)  # Add sorting area scene
 scene_manager.add_scene("City_District1", citydistrict_scene.CityDistrictScene(1))  # Add city district 1
 scene_manager.add_scene("City_District2", citydistrict_scene.CityDistrictScene(2))  # Add city district 2
 scene_manager.add_scene("City_District3", citydistrict_scene.CityDistrictScene(3))  # Add city district 3
 scene_manager.add_scene("Statistics", control_panel_stats.StatisticsScene())  # Add statistics scene
-scene_manager.switch_scene("Carpark")  # Start on the Carpark scene
+scene_manager.switch_scene("SortingArea")  # Start on the Carpark scene
 
 # UI Manager and scene buttons
 ui_manager = pygame_gui.UIManager((SCREEN_WIDTH, SCREEN_HEIGHT))  # Setup GUI manager for handling buttons
@@ -73,6 +75,7 @@ stat_tracker = {}  # Dictionary to store simulation stats
 running = True  # Flag to keep the game loop alive
 while running:
     dt = clock.tick(FPS)  # Cap FPS and retrieve time since last frame (in ms)
+    
 
     for event in pygame.event.get():  # Get all queued events (keyboard, mouse, etc.)
         if event.type == pygame.QUIT:
@@ -80,7 +83,7 @@ while running:
 
         if event.type == pygame.KEYDOWN:  # Keyboard-based scene switching
             if event.key == pygame.K_1:
-                scene_manager.switch_scene("SortingArea_Daily")
+                scene_manager.switch_scene("SortingArea")
             elif event.key == pygame.K_2:
                 scene_manager.switch_scene("Carpark")
             elif event.key == pygame.K_3:
@@ -96,7 +99,7 @@ while running:
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:  # Scene switch buttons
             if event.ui_element == button_sorting:
-                scene_manager.switch_scene("SortingArea_Daily")
+                scene_manager.switch_scene("SortingArea")
             elif event.ui_element == button_carpark:
                 scene_manager.switch_scene("Carpark")
             elif event.ui_element == button_city1:
@@ -113,7 +116,7 @@ while running:
     # Run simulation
     sim_clock.update(dt)  # Advance in-game time
     controller.update(dt, sim_clock)  # Run global simulation logic like spawns, animation, etc.
-    scene_manager.update(dt, sim_clock)  # Update currently active scene
+    scene_manager.update_all(dt, sim_clock)  # Update all scenes
     ui_manager.update(dt / 1000.0)  # Update UI (needs seconds, not ms)
 
     # Draw scene

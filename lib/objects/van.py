@@ -1,3 +1,6 @@
+from pygame.math import Vector2
+from loadimage import load_image
+
 class Van:
     def __init__(self, position, scene_name="Carpark"):
         self.position = Vector2(-100, position.y)  # Start off-screen on the left, matching target's Y

@@ -1,3 +1,9 @@
+import	pygame
+from pygame.math import Vector2  # Import Vector2 for 2D vector math
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from loadimage import load_image  # Import image loading function
 class Courier:
     def __init__(self, courier_type, id, position=None):
         self.type = courier_type  # "Courier_Staff" or "Courier_Subcon"
