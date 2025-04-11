@@ -19,6 +19,7 @@ CYCLE_TIMES = {
 
 COURIER_ENTRY_POINT = pygame.Vector2(-50, 300)  # Starting position (offscreen)
 COURIER_ENTRY_TARGET = pygame.Vector2(150, 300)  # Entry target position on screen
+SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720  # Dimensions used throughout the GUI
 
 # --- Spawner Functions ---
 
@@ -27,31 +28,31 @@ def spawn_vehicles(vans_list, cars_list):
     cars_list.clear()  # Clear any previously spawned cars
     spacing = 50  # Distance between vehicles in the grid
 
-    left_x = 50  # X offset from the left edge of the screen
+    right_x = SCREEN_WIDTH-50  # X offset from the left edge of the screen
     top_y = 60  # Y offset from the top edge of the screen
 
     van_cols = 8  # Number of van columns
     van_rows = 5  # Number of van rows
-    van_start_x = left_x  # Top-left starting X for vans
+    van_start_x = right_x  # Top-left starting X for vans
     van_start_y = top_y  # Top-left starting Y for vans
 
     # Create van grid (5 rows x 8 cols)
     for row in range(van_rows):
         for col in range(van_cols):
-            x = van_start_x + col * spacing  # Calculate X position
+            x = van_start_x - col * spacing  # Calculate X position
             y = van_start_y + row * spacing  # Calculate Y position
             vans_list.append(Van(position=Vector2(x, y)))  # Spawn a Van and add to list
 
     car_cols = 8  # Number of car columns (same as vans)
     car_rows = 5  # Number of car rows
     gap = 50  # Vertical space between vans and cars
-    car_start_x = left_x  # Top-left starting X for cars
+    car_start_x = right_x  # Top-left starting X for cars
     car_start_y = van_start_y + (van_rows * spacing) + gap  # Y below van grid
 
     # Create car grid (5 rows x 8 cols)
     for row in range(car_rows):
         for col in range(car_cols):
-            x = car_start_x + col * spacing  # Calculate X position
+            x = car_start_x - col * spacing  # Calculate X position
             y = car_start_y + row * spacing  # Calculate Y position
             cars_list.append(Car(position=Vector2(x, y)))  # Spawn a Car and add to list
 
