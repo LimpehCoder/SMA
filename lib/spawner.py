@@ -9,6 +9,7 @@ from objects.courier import Courier  # Import Courier class from courier module
 from objects.van import Van
 from objects.car import Car  # Import vehicle classes from vehicles module
 from objects.box import Box  # Import Box class from box module
+from objects.truck import Truck  # Import Truck class from truck module
 
 CYCLE_TIMES = {
     "ACycle": 8,
@@ -87,6 +88,6 @@ def spawn_couriers(day, available_vans, available_cars):
         result.append(courier)  # Add to result list
     return result  # Return the full list of couriers
 
-def spawn_boxes(cycle, box_list):
-    for i in range(20):  # 20 boxes per cycle
-        box_list.append(Box(f"B_{cycle}_{len(box_list)+i}"))  # Assign unique ID and append to list
+def spawn_truck(cycle_name):
+    start_y = 300  # Y-position where the truck will enter horizontally
+    return Truck(start_y=start_y, cycle_name=cycle_name)

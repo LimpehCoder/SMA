@@ -3,7 +3,7 @@ from loadimage import load_image
 
 class Van:
     def __init__(self, position, scene_name="Carpark"):
-        self.position = Vector2(-100, position.y)  # Start off-screen on the left, matching target's Y
+        self.position = Vector2(position.x, -100)  # Start off-screen on the left, matching target's Y
         self.target_position = Vector2(position)  # The in-scene location the van should drive to
         self.scene = scene_name  # Track which scene the van belongs to (e.g., "Carpark")
         self.occupied = False  # Whether a courier has claimed this van

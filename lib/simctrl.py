@@ -1,6 +1,4 @@
-from spawner import spawn_vehicles, spawn_couriers, spawn_boxes, CYCLE_TIMES
-from scenes.carpark_scene import CarparkScene
-from scenes.sortingarea_scene import SortingAreaScene
+from spawner import spawn_vehicles, spawn_couriers, spawn_truck, CYCLE_TIMES
 
 class SceneManager:
     def __init__(self):
@@ -93,11 +91,11 @@ class SimulationController:
             self.sorting_area.couriers.append(next_courier)
             self.sorting_area.courier_spawn_timer = 0
 
-        # --- Spawn boxes at scheduled times ---
+        # --- Spawn truck at scheduled cycle times ---
         for cycle_name in ["ACycle", "BCycle"]:
             if hour == CYCLE_TIMES[cycle_name] and cycle_name not in self.sorting_area.spawned_cycles:
-                spawn_boxes(cycle_name, self.sorting_area.boxes)
-                self.sorting_area.spawned_cycles.add(cycle_name)
+                self.sorting_area.truck = spawn_truck(cycle_name)  # Create and store truck in sorting area
+                self.sorting_area.spawned_cycles.add(cycle_name)  # Prevent re-spawn for the same cycle
 
         # --- Continue updating all entities globally ---
         for courier in self.sorting_area.couriers:
@@ -109,6 +107,14 @@ class SimulationController:
         for car in self.carpark.cars:
             car.update(dt)
 
+        if self.sorting_area.truck:
+            self.sorting_area.truck.update(dt)
+
+            if self.sorting_area.truck.is_ready_to_unload():
+                self.sorting_area.truck.unload_all()
+
+            if self.sorting_area.truck.is_ready_to_despawn():
+                self.sorting_area.truck = None
         # --- Maintain idle grid positions ---
         self.sorting_area.assign_idle_positions()
 
