@@ -26,14 +26,6 @@ def load_image(name, size=(32, 32)):
 COURIER_ENTRY_POINT = pygame.Vector2(-50, 300)  # Starting position (offscreen)
 COURIER_ENTRY_TARGET = pygame.Vector2(150, 300)  # Entry target position on screen
 
-# --- Entity Classes ---
-
-
-
-
-
-
-
 # --- Spawner Functions ---
 
 def spawn_vehicles(vans_list, cars_list):
