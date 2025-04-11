@@ -15,6 +15,7 @@ class SortingAreaScene(BaseScene):
         self.couriers = []  # List of couriers in this scene
         self.boxes = []  # List of boxes currently in the sorting area
         self.truck = None
+        self.box_pile = None
         self.spawned_today = False  # Tracks whether couriers have been spawned today
         self.spawned_cycles = set()  # Tracks which box spawn cycles have run
         self.pending_couriers = []  # Queue of couriers waiting to enter the canvas
@@ -44,9 +45,8 @@ class SortingAreaScene(BaseScene):
 
         for c in self.couriers:
             c.render(screen)  # Draw each courier
-        for b in self.boxes:
-            b.render(screen)
-
         if self.truck:
             self.truck.render(screen)
+        if self.box_pile:
+            self.box_pile.render(screen)
         

@@ -1,12 +1,11 @@
 from pygame.math import Vector2
 from loadimage import load_image  # Custom utility for loading and scaling images
-
 from pygame.math import Vector2
-from loadimage import load_image
+from box import Box  # Import Box class from box module
 
 class Truck:
-    def __init__(self, start_y=360, cycle_name=None):
-        self.target_position = Vector2(-150 + 96 * 2, start_y)  # Final stop position (on screen)
+    def __init__(self, start_y=220, cycle_name=None):
+        self.target_position = Vector2(-150 + 96 * 3, start_y)  # Final stop position (on screen)
         self.position = Vector2(-150, self.target_position.y)  # Off-screen left
         self.exit_position = Vector2(-150, self.target_position.y)  # Exit back to the left
         self.speed = 120  # Movement speed in pixels/sec
@@ -22,9 +21,11 @@ class Truck:
             self.spawn_boxes_for_cycle(self.cycle)
 
     def spawn_boxes_for_cycle(self, cycle_name):
-        count = 20 if cycle_name == "ACycle" else 30 if cycle_name == "BCycle" else 40  # Example logic
+        count = 20 if cycle_name == "ACycle" else 30 if cycle_name == "BCycle" else 40  # Define box count based on cycle
         for i in range(count):
-            self.boxes.append(f"Box_{cycle_name}_{i}")  # You can replace with actual Box objects
+            box_id = f"Box_{cycle_name}_{i}"
+            spawn_pos = Vector2(self.target_position.x + 40, self.target_position.y - 20)
+            self.boxes.append(Box(id=box_id, position=spawn_pos))  # Create and store Box
         self.loaded = True
 
     def update(self, dt):

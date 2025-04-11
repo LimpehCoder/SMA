@@ -75,7 +75,6 @@ stat_tracker = {}  # Dictionary to store simulation stats
 running = True  # Flag to keep the game loop alive
 while running:
     dt = clock.tick(FPS)  # Cap FPS and retrieve time since last frame (in ms)
-    
 
     for event in pygame.event.get():  # Get all queued events (keyboard, mouse, etc.)
         if event.type == pygame.QUIT:

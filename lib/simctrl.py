@@ -1,4 +1,10 @@
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from spawner import spawn_vehicles, spawn_couriers, spawn_truck, CYCLE_TIMES
+from pygame.math import Vector2
+from box import BoxPile  # Import BoxPile class from box module
 
 class SceneManager:
     def __init__(self):
@@ -109,9 +115,26 @@ class SimulationController:
 
         if self.sorting_area.truck:
             self.sorting_area.truck.update(dt)
-
+            # Drop boxes into the sorting area once truck arrives
             if self.sorting_area.truck.is_ready_to_unload():
+                pile_position = Vector2(
+                    self.sorting_area.truck.target_position.x + 40,
+                    self.sorting_area.truck.target_position.y - 20
+                )
+
+                # Create a new BoxPile only if one doesn't exist
+                if not self.sorting_area.box_pile:
+                    self.sorting_area.box_pile = BoxPile(position=pile_position)
+                else:
+                    # Optional: if truck pulls up to a new position, update pile location
+                    self.sorting_area.box_pile.position = pile_position
+                # Increment the box pile count cumulatively
+                self.sorting_area.box_pile.increment(count=len(self.sorting_area.truck.boxes))
+                # Add boxes to the global box list (e.g., for courier access or rendering)
+                self.sorting_area.boxes.extend(self.sorting_area.truck.boxes)
+                # Trigger the truck to depart
                 self.sorting_area.truck.unload_all()
+
 
             if self.sorting_area.truck.is_ready_to_despawn():
                 self.sorting_area.truck = None
