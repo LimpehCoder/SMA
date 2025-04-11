@@ -1,7 +1,5 @@
 from base_scene import BaseScene
 import pygame
-from lib.spawner import Courier, Box, spawn_couriers, spawn_boxes, spawn_vehicles, Van, Car
-
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 class CityDistrictScene(BaseScene):  # Inherits from BaseScene
     def __init__(self, district_id):  # Accepts unique district identifier (e.g. 1, 2, 3)

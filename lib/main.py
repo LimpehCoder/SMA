@@ -8,13 +8,13 @@ import pygame_gui
 
 # --- Import core components from simctrl.py ---
 from simctrl import SceneManager, SimulationClock, SimulationController
-from scenes import SortingAreaScene, CarparkScene, CityDistrictScene, StatisticsScene
+from scenes import sortingarea_scene, carpark_scene, citydistrict_scene, control_panel_stats
 
 # Initialize scenes and controller
 scene_manager = SceneManager()
-carpark_scene = CarparkScene()
-sorting_area_scene = SortingAreaScene(carpark_scene)
-controller = SimulationController(sorting_area_scene, carpark_scene)
+carpark = carpark_scene.CarparkScene()
+sorting_area_scene = sortingarea_scene.SortingAreaScene(carpark)
+controller = SimulationController(sorting_area_scene, carpark)
 
 # Initialize Pygame and simulation window
 pygame.init()
@@ -40,10 +40,10 @@ HOUSE_GRID = [(x, y) for x in range(0, 900, 30) for y in range(0, 900, 30)]
 # Register scenes
 scene_manager.add_scene("Carpark", carpark_scene)
 scene_manager.add_scene("SortingArea_Daily", sorting_area_scene)
-scene_manager.add_scene("City_District1", CityDistrictScene(1))
-scene_manager.add_scene("City_District2", CityDistrictScene(2))
-scene_manager.add_scene("City_District3", CityDistrictScene(3))
-scene_manager.add_scene("Statistics", StatisticsScene())
+scene_manager.add_scene("City_District1", citydistrict_scene.CityDistrictScene(1))
+scene_manager.add_scene("City_District2", citydistrict_scene.CityDistrictScene(2))
+scene_manager.add_scene("City_District3", citydistrict_scene.CityDistrictScene(3))
+scene_manager.add_scene("Statistics", control_panel_stats.StatisticsScene())
 scene_manager.switch_scene("Carpark")
 
 # UI Manager and scene buttons
