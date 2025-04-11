@@ -65,6 +65,15 @@ class SimulationController:
         self.vehicles_spawned = False
         self.spawned_cycles = set()  # Tracks which box cycles have run
 
+    def shift_courier_queue(self, box_pile):
+        for i in range(1, len(box_pile.occupied_slots)):
+            courier = box_pile.occupied_slots[i]
+            if courier:
+                box_pile.occupied_slots[i] = None
+                box_pile.occupied_slots[i - 1] = courier
+                courier.queue_index = i - 1
+                courier.target_position = box_pile.queue_slots[i - 1]
+
     def update(self, dt, sim_clock):
         hour = sim_clock.hour
         minute = sim_clock.minute
@@ -140,4 +149,37 @@ class SimulationController:
                 self.sorting_area.truck = None
         # --- Maintain idle grid positions ---
         self.sorting_area.assign_idle_positions()
+
+        for courier in self.sorting_area.couriers:
+            courier.update(dt)
+
+            if courier.status in ["Idle", "Ready"] and self.sorting_area.box_pile:
+                courier.request_slot(self.sorting_area.box_pile)
+
+            if courier.status == "QueuedIdle" and hasattr(courier, "queue_index"):
+                if courier.queue_index == 0 and not self.sorting_area.box_pile.is_empty():
+                    # Attempt pickup
+                    distance = (courier.position - courier.target_position).length()
+                    if distance < 5:
+                        courier.carrying.append("Box")
+                        courier.status = "Carrying"
+                        self.sorting_area.box_pile.decrement()
+                        self.sorting_area.box_pile.occupied_slots[courier.queue_index] = None
+                        courier.queue_index = None
+                        self.shift_courier_queue(self.sorting_area.box_pile)
+        
+        for courier in self.sorting_area.couriers:
+            if self.sorting_area.door_to_carpark_rect.collidepoint(courier.position):
+                print(f"{courier.id} is teleporting to Carpark.")
+                self.couriers.remove(courier)
+                self.carpark.receive_courier(courier)
+                
+        for courier in self.sorting_area.couriers[:]:
+            if self.sorting_area.door_to_carpark_rect.collidepoint(courier.position):
+                print(f"{courier.id} teleports to Carpark")
+                self.sorting_area.couriers.remove(courier)
+                self.carpark.receive_courier(courier)
+
+
+
 

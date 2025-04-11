@@ -21,6 +21,7 @@ class SortingAreaScene(BaseScene):
         self.pending_couriers = []  # Queue of couriers waiting to enter the canvas
         self.courier_spawn_timer = 0  # Timer used to space out entry of couriers
         self.courier_spawn_interval = 300  # Delay between courier entries (ms)
+        self.door_to_carpark_rect = pygame.Rect(SCREEN_WIDTH - 100, SCREEN_HEIGHT // 2 - 32, 48, 64)
 
     def assign_idle_positions(self):
         start_x = SCREEN_WIDTH - 50  # Start forming couriers from the right side of screen
@@ -38,10 +39,24 @@ class SortingAreaScene(BaseScene):
                 courier.status = "Forming"  # Begin forming into grid
                 courier.grid_assigned = True  # Prevent reassignment
 
+    def receive_courier(self, courier):
+        courier.status = "Entering"
+        courier.position = pygame.Vector2(SCREEN_WIDTH - 100, SCREEN_HEIGHT // 2)  # Spawn from right edge
+        courier.target_position = pygame.Vector2(SCREEN_WIDTH - 200, SCREEN_HEIGHT // 2)  # Walk left into view
+        courier.grid_assigned = False
+        self.couriers.append(courier)
+
     def render(self, screen):
         screen.fill(self.bg_color)  # Fill background
         font = pygame.font.SysFont("Arial", 36)  # Set font
         screen.blit(font.render(self.name, True, (255, 255, 255)), (50, 50))  # Draw scene name
+        # Draw door rectangle
+        pygame.draw.rect(screen, (0, 0, 0), self.door_to_carpark_rect)  # Yellow-ish portal
+
+        # Label for the door
+        door_font = pygame.font.SysFont("Arial", 20)
+        door_label = door_font.render("TO CARPARK", True, (0, 0, 0))
+        screen.blit(door_label, (self.door_to_carpark_rect.x - 20, self.door_to_carpark_rect.y - 24))
 
         for c in self.couriers:
             c.render(screen)  # Draw each courier

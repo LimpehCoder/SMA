@@ -18,6 +18,8 @@ class BoxPile:
         self.position = Vector2(position)
         self.count = 0
         self.font = pygame.font.SysFont("Arial", 20)
+        self.queue_slots = self.generate_queue_positions()
+        self.occupied_slots = [None] * len(self.queue_slots)  # Each slot holds a courier or None
 
     def set_count(self, count):
         self.count = max(0, count)
@@ -39,3 +41,13 @@ class BoxPile:
             # Draw counter
             label = self.font.render(str(self.count), True, (255, 255, 255))
             screen.blit(label, (self.position.x + 20, self.position.y - 15))
+    def generate_queue_positions(self, spacing=40):
+        x, y = self.position.x, self.position.y
+        return [
+            Vector2(x + spacing, y),     # right
+            Vector2(x + spacing, y - spacing),  # top-right
+            Vector2(x + spacing, y + spacing),  # bottom-right
+            Vector2(x, y - spacing),     # top
+            Vector2(x, y + spacing),     # bottom
+        ]
+

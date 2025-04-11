@@ -1,9 +1,11 @@
 from pygame.math import Vector2
 from loadimage import load_image  # Import image loading function
 
+SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720  # Dimensions used throughout the GUI
+
 class Car:
     def __init__(self, position):
-        self.position = position  # Starting position in the scene (usually directly placed, not animated)
+        self.position = Vector2(SCREEN_WIDTH + 100, position.y)  # Start off-screen right
         self.occupied = False  # Whether a courier has claimed this car
         self.driver = None  # Reference to the assigned courier
         self.image = load_image("car.png", (32, 24))  # Load and scale the car image

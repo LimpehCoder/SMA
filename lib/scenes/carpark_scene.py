@@ -10,15 +10,27 @@ class CarparkScene(BaseScene):  # Inherits from BaseScene
     def __init__(self):
         self.bg_color = (30, 80, 60)  # Set background color (dark greenish)
         self.name = "Carpark"  # Scene name for labeling
+        self.door_to_sorting_rect = pygame.Rect(50, SCREEN_HEIGHT // 2 - 32, 48, 64)  # Left edge
         self.vans = []  # List to store van objects
         self.cars = []  # List to store car objects
         self.spawned_today = False  # Tracks if today's vehicles have been spawned
+
+    def receive_courier(self, courier):
+        courier.status = "Entering"
+        courier.position = pygame.Vector2(100, SCREEN_HEIGHT // 2)  # Set spawn-in position
+        courier.target_position = pygame.Vector2(200, SCREEN_HEIGHT // 2)  # Move right into formation
+        courier.grid_assigned = False
+        self.vans.append(courier)  # Or: self.couriers.append() if you track separately
 
     def render(self, screen):  # Draws everything on this scene
         screen.fill(self.bg_color)  # Fill background with carpark color
         font = pygame.font.SysFont("Arial", 48)  # Load font
         label = font.render(self.name, True, (255, 255, 255))  # Render scene name text
         screen.blit(label, (50, 50))  # Display scene name at top-left
+        pygame.draw.rect(screen, (0, 0, 0), self.door_to_sorting_rect)  # Black portal to SortingArea
+        door_font = pygame.font.SysFont("Arial", 20)
+        door_label = door_font.render("TO SORTING", True, (255, 255, 255))
+        screen.blit(door_label, (self.door_to_sorting_rect.x + 54, self.door_to_sorting_rect.y - 24))
 
         for van in self.vans:  # Draw each van
             van.render(screen)

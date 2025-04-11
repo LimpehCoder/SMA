@@ -1,9 +1,10 @@
 from pygame.math import Vector2
 from loadimage import load_image
+SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720  # Dimensions used throughout the GUI
 
 class Van:
     def __init__(self, position, scene_name="Carpark"):
-        self.position = Vector2(position.x, -100)  # Start off-screen on the left, matching target's Y
+        self.position = Vector2(SCREEN_WIDTH + 100, position.y)  # Off-screen right
         self.target_position = Vector2(position)  # The in-scene location the van should drive to
         self.scene = scene_name  # Track which scene the van belongs to (e.g., "Carpark")
         self.occupied = False  # Whether a courier has claimed this van
