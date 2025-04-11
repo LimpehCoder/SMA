@@ -4,6 +4,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from spawner import spawn_vehicles, spawn_couriers, spawn_truck, CYCLE_TIMES
 from pygame.math import Vector2
+from objects.box import BoxPile  # Import BoxPile class from box module
 
 class SceneManager:
     def __init__(self):
