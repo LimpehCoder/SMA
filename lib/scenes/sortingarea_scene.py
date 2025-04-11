@@ -24,20 +24,30 @@ class SortingAreaScene(BaseScene):
         self.door_to_carpark_rect = pygame.Rect(SCREEN_WIDTH - 100, SCREEN_HEIGHT // 2 - 32, 48, 64)
 
     def assign_idle_positions(self):
-        start_x = SCREEN_WIDTH - 50  # Start forming couriers from the right side of screen
-        start_y = 80  # Top margin for the grid
-        spacing = 35  # Distance between couriers in grid
+        top_start_x = SCREEN_WIDTH - 50
+        top_start_y = 80
+        bottom_start_x = SCREEN_WIDTH - 50
+        bottom_start_y = SCREEN_HEIGHT - 160  # Adjust as needed
+        spacing = 35
+        cols = 15
 
-        cols = 15  # Number of columns in the idle grid
         for index, courier in enumerate(self.couriers):
             if courier.status == "Idle" and not courier.grid_assigned:
-                col = index % cols  # Column position based on index
-                row = index // cols  # Row position based on index
-                target_x = start_x - (col * spacing)  # Horizontal offset from the right
-                target_y = start_y + (row * spacing)  # Vertical offset from the top
-                courier.target_position = pygame.Vector2(target_x, target_y)  # Set movement goal
-                courier.status = "Forming"  # Begin forming into grid
-                courier.grid_assigned = True  # Prevent reassignment
+                if courier.type == "Courier_Staff":
+                    col = index % cols
+                    row = index // cols
+                    target_x = top_start_x - (col * spacing)
+                    target_y = top_start_y + (row * spacing)
+                elif courier.type == "Courier_Subcon":
+                    col = index % cols
+                    row = index // cols
+                    target_x = bottom_start_x - (col * spacing)
+                    target_y = bottom_start_y + (row * spacing)
+
+                courier.target_position = Vector2(target_x, target_y)
+                courier.status = "Forming"
+                courier.grid_assigned = True
+
 
     def receive_courier(self, courier):
         courier.status = "Entering"

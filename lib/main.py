@@ -7,17 +7,20 @@ from enum import Enum
 import pygame_gui
 
 # --- Import core components from simctrl.py ---
-from simctrl import SceneManager, SimulationClock, SimulationController
+from simctrl import SceneManager, SimulationClock, VanController, CarController, TruckController, StaffController,SubconController
 from scenes import sortingarea_scene, carpark_scene, citydistrict_scene, control_panel_stats
-from scenes.carpark_scene import CarparkScene
-from scenes.base_scene import BaseScene
 
-from scenes.sortingarea_scene import SortingAreaScene
 # Initialize scenes and controller
 scene_manager = SceneManager()  # Create the global scene manager that handles switching and tracking active scenes
 carpark = carpark_scene.CarparkScene()  # Instantiate the carpark scene
 sorting_area_scene = sortingarea_scene.SortingAreaScene(carpark)  # Instantiate sorting area scene with reference to carpark
-controller = SimulationController(sorting_area_scene, carpark)  # Central simulation logic controller
+# Initialize controllers
+truck_controller = TruckController(sorting_area_scene)
+van_controller = VanController(carpark)
+car_controller = CarController(carpark)
+staff_controller = StaffController(sorting_area_scene, carpark)
+subcon_controller = SubconController(sorting_area_scene, carpark)  # Initialize subcon controller
+
 
 # Initialize Pygame and simulation window
 pygame.init()  # Initialize all imported Pygame modules
@@ -114,7 +117,12 @@ while running:
 
     # Run simulation
     sim_clock.update(dt)  # Advance in-game time
-    controller.update(dt, sim_clock)  # Run global simulation logic like spawns, animation, etc.
+    # Modular simulation logic
+    truck_controller.update(dt, sim_clock)
+    van_controller.update(dt, sim_clock)
+    car_controller.update(dt, sim_clock)
+    staff_controller.report(dt, sim_clock)
+    subcon_controller.report(dt, sim_clock)  # Update all subcon staff
     scene_manager.update_all(dt, sim_clock)  # Update all scenes
     ui_manager.update(dt / 1000.0)  # Update UI (needs seconds, not ms)
 

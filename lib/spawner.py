@@ -5,7 +5,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from pygame.math import Vector2
 
-from objects.courier import Courier  # Import Courier class from courier module
+from objects.courier import Courier, StaffCourier, SubconCourier  # Import Courier class from courier module
 from objects.van import Van
 from objects.car import Car  # Import vehicle classes from vehicles module
 from objects.box import Box  # Import Box class from box module
@@ -23,71 +23,77 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720  # Dimensions used throughout the GUI
 
 # --- Spawner Functions ---
 
-def spawn_vehicles(vans_list, cars_list):
-    vans_list.clear()  # Clear any previously spawned vans
-    cars_list.clear()  # Clear any previously spawned cars
-    spacing = 50  # Distance between vehicles in the grid
+def spawn_vans(vans_list):
+    vans_list.clear()
+    spacing = 50
+    right_x = SCREEN_WIDTH - 50
+    top_y = 60
 
-    right_x = SCREEN_WIDTH-50  # X offset from the left edge of the screen
-    top_y = 60  # Y offset from the top edge of the screen
+    van_cols = 8
+    van_rows = 5
+    van_start_x = right_x
+    van_start_y = top_y
 
-    van_cols = 8  # Number of van columns
-    van_rows = 5  # Number of van rows
-    van_start_x = right_x  # Top-left starting X for vans
-    van_start_y = top_y  # Top-left starting Y for vans
-
-    # Create van grid (5 rows x 8 cols)
     for row in range(van_rows):
         for col in range(van_cols):
-            x = van_start_x - col * spacing  # Calculate X position
-            y = van_start_y + row * spacing  # Calculate Y position
-            vans_list.append(Van(position=Vector2(x, y)))  # Spawn a Van and add to list
+            x = van_start_x - col * spacing
+            y = van_start_y + row * spacing
+            vans_list.append(Van(position=Vector2(x, y)))
 
-    car_cols = 8  # Number of car columns (same as vans)
-    car_rows = 5  # Number of car rows
-    gap = 50  # Vertical space between vans and cars
-    car_start_x = right_x  # Top-left starting X for cars
-    car_start_y = van_start_y + (van_rows * spacing) + gap  # Y below van grid
+    print(f"Spawned {len(vans_list)} vans")
 
-    # Create car grid (5 rows x 8 cols)
+def spawn_cars(cars_list):
+    cars_list.clear()
+    spacing = 50
+    right_x = SCREEN_WIDTH - 50
+    top_y = 60
+
+    car_cols = 8
+    car_rows = 5
+    gap = 50
+    car_start_x = right_x
+    car_start_y = top_y + (5 * spacing) + gap  # below the vans
+
     for row in range(car_rows):
         for col in range(car_cols):
-            x = car_start_x - col * spacing  # Calculate X position
-            y = car_start_y + row * spacing  # Calculate Y position
-            cars_list.append(Car(position=Vector2(x, y)))  # Spawn a Car and add to list
+            x = car_start_x - col * spacing
+            y = car_start_y + row * spacing
+            cars_list.append(Car(position=Vector2(x, y)))
 
-    print(f"Spawned {len(vans_list)} vans and {len(cars_list)} cars")  # Log how many vehicles were spawned
+    print(f"Spawned {len(cars_list)} cars")
 
-def spawn_couriers(day, available_vans, available_cars):
-    result = []  # List of spawned couriers
-    entry_point = Vector2(640, -40)  # Spawn point above screen center
-
-    # Spawn 5 Courier_Staff and assign to vans
+def spawn_staff(day, available_vans):
+    result = []
+    entry_point = Vector2(640, -40)
     for i in range(5):
-        courier = Courier("Courier_Staff", f"S_{day}_{i}", position=entry_point.copy())  # Create new courier
-        courier.scene = "SortingArea_Daily"  # Assign to sorting area scene
-        if available_vans:  # If vans exist
-            for van in available_vans:
-                if not van.occupied:  # Find an available van
-                    courier.assigned_vehicle = van  # Assign van to courier
-                    van.occupied = True  # Mark van as taken
-                    van.driver = courier  # Link courier to van
-                    break
-        result.append(courier)  # Add to result list
+        courier = StaffCourier(f"S_{day}_{i}")
 
-    # Spawn 3 Courier_Subcon and assign to cars
-    for i in range(3):
-        courier = Courier("Courier_Subcon", f"SC_{day}_{i}", position=entry_point.copy())  # Create new courier
-        courier.scene = "SortingArea_Daily"  # Assign to sorting area
-        if available_cars:  # If cars exist
-            for car in available_cars:
-                if not car.occupied:  # Find an available car
-                    courier.assigned_vehicle = car  # Assign car to courier
-                    car.occupied = True  # Mark car as taken
-                    car.driver = courier  # Link courier to car
+        courier.scene = "SortingArea_Daily"
+        if available_vans:
+            for van in available_vans:
+                if not van.occupied:
+                    courier.assigned_vehicle = van
+                    van.occupied = True
+                    van.driver = courier
                     break
-        result.append(courier)  # Add to result list
-    return result  # Return the full list of couriers
+        result.append(courier)
+    return result
+
+def spawn_subcon(day, available_cars):
+    result = []
+    entry_point = Vector2(640, -40)
+    for i in range(3):
+        courier = SubconCourier(f"SC_{day}_{i}")
+        courier.scene = "SortingArea_Daily"
+        if available_cars:
+            for car in available_cars:
+                if not car.occupied:
+                    courier.assigned_vehicle = car
+                    car.occupied = True
+                    car.driver = courier
+                    break
+        result.append(courier)
+    return result
 
 def spawn_truck(cycle_name):
     start_y = 300  # Y-position where the truck will enter horizontally
