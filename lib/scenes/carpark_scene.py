@@ -1,6 +1,6 @@
 from base_scene import BaseScene
 import pygame
-from objects import Courier, Box, spawn_couriers, spawn_boxes, spawn_vehicles, Van, Car
+from lib.spawner import Courier, Box, spawn_couriers, spawn_boxes, spawn_vehicles, Van, Car
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 class CarparkScene(BaseScene):  # Inherits from BaseScene

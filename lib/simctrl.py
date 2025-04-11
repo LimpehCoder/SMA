@@ -1,4 +1,4 @@
-from objects import spawn_vehicles, spawn_couriers, spawn_boxes, CYCLE_TIMES
+from lib.spawner import spawn_vehicles, spawn_couriers, spawn_boxes, CYCLE_TIMES
 
 class SceneManager:
     def __init__(self):
