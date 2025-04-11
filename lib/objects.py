@@ -28,78 +28,11 @@ COURIER_ENTRY_TARGET = pygame.Vector2(150, 300)  # Entry target position on scre
 
 # --- Entity Classes ---
 
-class Courier:
-    def __init__(self, courier_type, id, position=None):
-        self.type = courier_type  # "Courier_Staff" or "Courier_Subcon"
-        self.id = id  # Unique ID string like "S_Monday_0"
-        self.status = "Entering"  # Initial status, used for animation state
-        self.position = position or COURIER_ENTRY_POINT.copy()  # Starting position (off-screen by default)
-        self.carrying = []  # List of boxes currently held by the courier
-        self.shift = None  # Placeholder for shift assignment (e.g., ACycle, BCycle)
-        self.speed = 300  # Movement speed in pixels per second
-        self.target_position = pygame.Vector2(0, 0)  # Position the courier will move toward
-        self.grid_assigned = False  # Has the courier been assigned a final idle location?
 
-        if courier_type == "Courier_Staff":
-            self.image = load_image("courier_staff.png", (32, 32))  # Load the staff sprite
-        else:
-            self.image = load_image("courier_subcon.png", (32, 32))  # Load the subcontractor sprite
 
-    def update(self, dt):
-        if self.status in ["Entering", "Forming"]:  # Only animate if in movement states
-            direction = self.target_position - self.position  # Vector to destination
-            distance = direction.length()  # Length of that vector
 
-            if distance < 2:  # Close enough to consider arrival
-                if self.status == "Entering":
-                    self.status = "Idle"  # Arrived in staging area
-                elif self.status == "Forming":
-                    self.status = "Ready"  # Finished forming into grid
-            else:
-                direction.normalize_ip()  # Normalize to unit vector
-                self.position += direction * self.speed * (dt / 1000.0)  # Move based on speed and delta time
 
-    def render(self, screen):
-        screen.blit(self.image, self.position)  # Draw courier at current position
 
-class Box:
-    def __init__(self, id):
-        self.id = id  # Unique ID for the box, e.g., "B_ACycle_1"
-        self.status = "Waiting"  # Current status, can be updated (e.g., "Loaded", "Delivered")
-        self.position = (random.randint(100, 600), random.randint(100, 600))  # Random drop location in SortingArea
-        self.image = load_image("box.png")  # Load the image for rendering
-
-    def render(self, screen):
-        screen.blit(self.image, self.position)  # Draw box at current location
-
-class Van:
-    def __init__(self, position, scene_name="Carpark"):
-        self.position = Vector2(-100, position.y)  # Start off-screen on the left, matching target's Y
-        self.target_position = Vector2(position)  # The in-scene location the van should drive to
-        self.scene = scene_name  # Track which scene the van belongs to (e.g., "Carpark")
-        self.occupied = False  # Whether a courier has claimed this van
-        self.driver = None  # Reference to the assigned courier
-        self.speed = 120  # Movement speed in pixels per second
-        self.image = load_image("van.png", (48, 32))  # Load and scale the van image
-
-    def update(self, dt):
-        direction = self.target_position - self.position  # Get vector to target
-        if direction.length() > 1:  # If far enough from destination, move
-            direction.normalize_ip()  # Normalize to unit direction vector
-            self.position += direction * self.speed * (dt / 1000.0)  # Move based on speed and time delta
-
-    def render(self, screen):
-        screen.blit(self.image, self.position)  # Draw van at its current position
-
-class Car:
-    def __init__(self, position):
-        self.position = position  # Starting position in the scene (usually directly placed, not animated)
-        self.occupied = False  # Whether a courier has claimed this car
-        self.driver = None  # Reference to the assigned courier
-        self.image = load_image("car.png", (32, 24))  # Load and scale the car image
-
-    def render(self, screen):
-        screen.blit(self.image, self.position)  # Draw car at its current position
 
 # --- Spawner Functions ---
 
