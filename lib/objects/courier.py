@@ -4,6 +4,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from loadimage import load_image  # Import image loading function
+import random
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 
@@ -20,31 +21,90 @@ class Courier:
         self.speed = 300
         self.queue_index = None
         self.assigned_vehicle = None
+        self.slot_request_timer = 0  # Timer to control how often slot is requested
+        self.slot_request_interval = 100  # milliseconds (1 second)
         self.font = pygame.font.SysFont("Arial", 16)
         self.image = load_image(image_path, (32, 32))
 
     def request_slot(self, box_pile):
-        for i, slot in enumerate(box_pile.occupied_slots):
-            if slot is None:
-                box_pile.occupied_slots[i] = self
-                self.target_position = box_pile.queue_slots[i]
-                self.queue_index = i
-                self.status = "MOVE_TO_QUEUE"
-                print(f"{self.id} assigned to queue slot {i}")
-                return True
-        return False
+        if box_pile is None:
+            return False  # Safety check
+
+        # Build list of queues whose highest index is available
+        available_queues = []
+        if box_pile.right_occupied[-1] is None:
+            available_queues.append("R")
+        if box_pile.top_occupied[-1] is None:
+            available_queues.append("T")
+        if box_pile.bottom_occupied[-1] is None:
+            available_queues.append("B")
+
+        if not available_queues:
+            return False  # All end slots are full
+
+        # Randomly select one of the queues with an open highest-index slot
+        queue_choice = random.choice(available_queues)
+
+        if queue_choice == "R":
+            i = len(box_pile.right_occupied) - 1
+            box_pile.right_occupied[i] = self
+            self.target_position = box_pile.right_queue_slots[i]
+            self.queue_index = i
+            self.queue_type = "R"
+            self.status = "MOVE_TO_QUEUE"
+            print(f"[Queue Assign] {self.id} → R{i}")
+            return True
+
+        elif queue_choice == "T":
+            i = len(box_pile.top_occupied) - 1
+            box_pile.top_occupied[i] = self
+            self.target_position = box_pile.top_queue_slots[i]
+            self.queue_index = i
+            self.queue_type = "T"
+            self.status = "MOVE_TO_QUEUE"
+            print(f"[Queue Assign] {self.id} → T{i}")
+            return True
+
+        elif queue_choice == "B":
+            i = len(box_pile.bottom_occupied) - 1
+            box_pile.bottom_occupied[i] = self
+            self.target_position = box_pile.bottom_queue_slots[i]
+            self.queue_index = i
+            self.queue_type = "B"
+            self.status = "MOVE_TO_QUEUE"
+            print(f"[Queue Assign] {self.id} → B{i}")
+            return True
+
+        return False  # Shouldn't be reached
+
+
+    def move_up_queue(self, queue_list, slot_list):
+        if self.queue_index is None or self.queue_index == 0:
+            return
+        prev = self.queue_index - 1
+        if queue_list[prev] is None:
+            queue_list[self.queue_index] = None
+            queue_list[prev] = self
+            self.queue_index = prev
+            self.target_position = slot_list[prev]
+            print(f"[Queue Move] {self.id} → slot {prev}")
 
     def pickup_box(self, box_pile):
         if not box_pile.is_empty():
             self.carrying += 1
             box_pile.decrement()
-            if self.queue_index is not None:
-                box_pile.occupied_slots[self.queue_index] = None
-            self.queue_index = None
-            self.status = "MOVE_TO_VEHICLE"
-            if self.assigned_vehicle:
-                self.target_position = self.assigned_vehicle.target_position
-            print(f"{self.id} picked up a box and is moving to vehicle")
+
+            # Clear courier from the correct occupied list
+            if self.queue_index is not None and self.queue_type:
+                if self.queue_type == "R":
+                    box_pile.right_occupied[self.queue_index] = None
+                elif self.queue_type == "T":
+                    box_pile.top_occupied[self.queue_index] = None
+                elif self.queue_type == "B":
+                    box_pile.bottom_occupied[self.queue_index] = None
+
+                self.queue_index = None
+                self.queue_type = None
 
     def deliver_box(self):
         if self.assigned_vehicle and self.carrying > 0:

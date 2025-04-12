@@ -16,6 +16,8 @@ class CourierController:
         self.courier_type = courier_type  # "Courier_Staff" or "Courier_Subcon"
         self.spawned = False
         self.last_day = None
+        self.queue_index = None
+        self.queue_type = None
 
         # State definitions
         self.states = {
@@ -45,7 +47,6 @@ class CourierController:
         self.sorting_area.spawned_today = False
         self.last_day = day
 
-
     def spawn(self, day):
         raise NotImplementedError("This method must be implemented by subclasses.")
 
@@ -61,17 +62,15 @@ class CourierController:
 
         if hour == 6 and minute == 0 and day != self.last_day:
             self.reset_daily_state(day)
-
         if hour == 7 and not self.spawned:
             self.spawn(day)
             self.spawned = True
-
         self.stream_pending(dt)
 
         for courier in self.sorting_area.couriers:
             if courier.type == self.courier_type:
                 self.states.get(courier.status, self._off_work)(courier, dt)
-
+            
     def _off_work(self, courier, dt):
         pass
 
@@ -80,63 +79,62 @@ class CourierController:
             courier.status = "IDLE"
 
     def _idle(self, courier, dt):
-        pile = self.sorting_area.box_pile
-        if pile and courier.queue_index is None:
-            courier.request_slot(pile)
-            courier.status = "MOVE_TO_QUEUE"
+        courier.slot_request_timer += dt  # Accumulate time
+
+        if courier.slot_request_timer >= courier.slot_request_interval:
+            success = courier.request_slot(self.sorting_area.box_pile)
+            if success:
+                courier.slot_request_timer = 0  # Reset timer only on success
+
 
     def _move_to_queue(self, courier, dt):
+        # Move toward assigned queue slot
         if self._move_towards(courier, courier.target_position, dt):
             courier.status = "QUEUING"
 
     def _queuing(self, courier, dt):
         pile = self.sorting_area.box_pile
+        if courier.queue_type == "R":
+            occupied, slots = pile.right_occupied, pile.right_queue_slots
+        elif courier.queue_type == "T":
+            occupied, slots = pile.top_occupied, pile.top_queue_slots
+        elif courier.queue_type == "B":
+            occupied, slots = pile.bottom_occupied, pile.bottom_queue_slots
+        else:
+            return
 
-        # Only allow specific courier types in specific priority slots
-        if courier.queue_index not in [0, 1, 2]:
-            return  # Not a high-priority slot
-
+        # Arrived at slot
         if (courier.position - courier.target_position).length() < 5:
-            # Ensure pickup happens in R0 → T0 → B0 order
-            pickup_priority = [0, 1, 2]
-            for slot_index in pickup_priority:
-                slot_courier = pile.occupied_slots[slot_index]
-                if slot_courier == courier and not pile.is_empty():
-                    # Pickup logic
-                    for _ in range(5):  # Pick up 5 boxes
-                        if not pile.is_empty():
-                            courier.pickup_box(pile)
-                    courier.status = "SORTING"
-                    pile.occupied_slots[slot_index] = None
-                    courier.queue_index = None
-                    self.shift_queue()
-                    break  # Only allow one courier pickup per update frame
+            if courier.queue_index == 0:
+                courier.pickup_box(pile)
+                occupied[0] = None
+                courier.queue_index = None
+                courier.queue_type = None
+            else:
+                courier.move_up_queue(occupied, slots)
 
-    def shift_queue(self):
+
+    def cascade_queue_shift(self, queue_type):
+        """Triggers all couriers in a given row to move forward if possible."""
         pile = self.sorting_area.box_pile
-        total = len(pile.occupied_slots)
 
-        # Each row has 10 slots; determine starting indices for T and B
-        R_start, T_start, B_start = 0, 10, 20
-        row_size = 10
+        if queue_type == "R":
+            queue = pile.right_occupied
+            slots = pile.right_queue_slots
+        elif queue_type == "T":
+            queue = pile.top_occupied
+            slots = pile.top_queue_slots
+        elif queue_type == "B":
+            queue = pile.bottom_occupied
+            slots = pile.bottom_queue_slots
+        else:
+            return  # Invalid type
 
-        def shift_row(start_index):
-            # Only shift if the front slot is empty
-            if pile.occupied_slots[start_index] is None:
-                for i in range(start_index + 1, start_index + row_size):
-                    courier = pile.occupied_slots[i]
-                    if courier and courier.type == self.courier_type:
-                        # Shift forward
-                        pile.occupied_slots[i] = None
-                        pile.occupied_slots[i - 1] = courier
-                        courier.queue_index = i - 1
-                        courier.target_position = pile.queue_slots[i - 1]
-
-        # Shift each row independently
-        shift_row(R_start)
-        shift_row(T_start)
-        shift_row(B_start)
-
+        # Start from the back and try to shift each courier forward
+        for i in range(len(queue) - 1, 0, -1):
+            courier = queue[i]
+            if courier and queue[i - 1] is None:
+                courier.move_up_queue(queue, slots)
 
     def _sorting(self, courier, dt):
         if courier.assigned_vehicle:

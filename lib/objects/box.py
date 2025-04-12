@@ -8,8 +8,13 @@ class BoxPile:
         self.position = Vector2(position)  # Central position of the pile
         self.count = 0  # Number of boxes currently in the pile
         self.font = pygame.font.SysFont("Arial", 20)  # Font for rendering the counter
-        self.queue_slots = self.generate_queue_positions()  # Positions around the pile for couriers
-        self.occupied_slots = [None] * len(self.queue_slots)  # Track which couriers are at which slots
+        self.right_queue_slots = self.generate_right_queue_positions()
+        self.top_queue_slots = self.generate_top_queue_positions()
+        self.bottom_queue_slots = self.generate_bottom_queue_positions()
+        self.right_occupied = [None] * len(self.right_queue_slots)
+        self.top_occupied = [None] * len(self.top_queue_slots)
+        self.bottom_occupied = [None] * len(self.bottom_queue_slots)
+
 
     def set_count(self, count):
         self.count = max(0, count)  # Set pile count, ensuring non-negative
@@ -32,24 +37,14 @@ class BoxPile:
             label = self.font.render(str(self.count), True, (255, 255, 255))
             screen.blit(label, (self.position.x + 20, self.position.y - 15))
 
-    def generate_queue_positions(self, spacing=40, slots_per_side=10):
+    def generate_right_queue_positions(self, spacing=40, slots=10):
         x, y = self.position.x, self.position.y
-        print(f"[BoxPile] Center Position: ({x}, {y})")
+        return [Vector2(x + spacing + i * spacing, y) for i in range(slots)]
 
-        queue_slots = []
+    def generate_top_queue_positions(self, spacing=40, slots=10):
+        x, y = self.position.x, self.position.y
+        return [Vector2(x + i * spacing, y - spacing) for i in range(slots)]
 
-        for i in range(slots_per_side):
-            dx = i * spacing
-            # Generate slot i to the right
-            right_slot = Vector2(x + spacing + dx, y)
-            # Generate top slot i
-            top_slot = Vector2(x + dx, y - spacing)
-            # Generate bottom slot i
-            bottom_slot = Vector2(x + dx, y + spacing)
-
-            queue_slots.extend([right_slot, top_slot, bottom_slot])
-
-            print(f"  [Slot R{i}] {right_slot}, [Slot T{i}] {top_slot}, [Slot B{i}] {bottom_slot}")
-
-        print(f"[QueueSlots] Total: {len(queue_slots)}")
-        return queue_slots
+    def generate_bottom_queue_positions(self, spacing=40, slots=10):
+        x, y = self.position.x, self.position.y
+        return [Vector2(x + i * spacing, y + spacing) for i in range(slots)]
