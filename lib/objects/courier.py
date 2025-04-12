@@ -38,7 +38,8 @@ class Courier:
         if not box_pile.is_empty():
             self.carrying += 1
             box_pile.decrement()
-            box_pile.occupied_slots[self.queue_index] = None
+            if self.queue_index is not None:
+                box_pile.occupied_slots[self.queue_index] = None
             self.queue_index = None
             self.status = "MOVE_TO_VEHICLE"
             if self.assigned_vehicle:

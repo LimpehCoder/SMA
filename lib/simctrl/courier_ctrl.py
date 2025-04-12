@@ -91,22 +91,59 @@ class CourierController:
 
     def _queuing(self, courier, dt):
         pile = self.sorting_area.box_pile
-        if courier.queue_index == 0 and not pile.is_empty():
-            if (courier.position - courier.target_position).length() < 5:
-                for _ in range(5):  # Attempt to pick up 5 boxes
-                    if not pile.is_empty():
-                        courier.pickup_box(pile)  # Handle count, status, movement internally
-                courier.status = "SORTING"
-                pile.occupied_slots[0] = None  # Clear the slot
-                courier.queue_index = None
-                self.shift_queue()
+
+        # Only allow specific courier types in specific priority slots
+        if courier.queue_index not in [0, 1, 2]:
+            return  # Not a high-priority slot
+
+        if (courier.position - courier.target_position).length() < 5:
+            # Ensure pickup happens in R0 → T0 → B0 order
+            pickup_priority = [0, 1, 2]
+            for slot_index in pickup_priority:
+                slot_courier = pile.occupied_slots[slot_index]
+                if slot_courier == courier and not pile.is_empty():
+                    # Pickup logic
+                    for _ in range(5):  # Pick up 5 boxes
+                        if not pile.is_empty():
+                            courier.pickup_box(pile)
+                    courier.status = "SORTING"
+                    pile.occupied_slots[slot_index] = None
+                    courier.queue_index = None
+                    self.shift_queue()
+                    break  # Only allow one courier pickup per update frame
+
+    def shift_queue(self):
+        pile = self.sorting_area.box_pile
+        total = len(pile.occupied_slots)
+
+        # Each row has 10 slots; determine starting indices for T and B
+        R_start, T_start, B_start = 0, 10, 20
+        row_size = 10
+
+        def shift_row(start_index):
+            # Only shift if the front slot is empty
+            if pile.occupied_slots[start_index] is None:
+                for i in range(start_index + 1, start_index + row_size):
+                    courier = pile.occupied_slots[i]
+                    if courier and courier.type == self.courier_type:
+                        # Shift forward
+                        pile.occupied_slots[i] = None
+                        pile.occupied_slots[i - 1] = courier
+                        courier.queue_index = i - 1
+                        courier.target_position = pile.queue_slots[i - 1]
+
+        # Shift each row independently
+        shift_row(R_start)
+        shift_row(T_start)
+        shift_row(B_start)
+
 
     def _sorting(self, courier, dt):
         if courier.assigned_vehicle:
             courier.target_position = courier.assigned_vehicle.target_position
             if self._move_towards(courier, courier.target_position, dt):
                 courier.assigned_vehicle.load_box()
-                courier.carrying.clear()
+                courier.carrying = 0
                 courier.status = "IDLE"
 
     def _delivering(self, courier, dt):
@@ -120,16 +157,6 @@ class CourierController:
         direction.normalize_ip()
         courier.position += direction * courier.speed * (dt / 1000.0)
         return False
-
-    def shift_queue(self):
-        pile = self.sorting_area.box_pile
-        for i in range(1, len(pile.occupied_slots)):
-            courier = pile.occupied_slots[i]
-            if courier and courier.type == self.courier_type:
-                pile.occupied_slots[i] = None
-                pile.occupied_slots[i - 1] = courier
-                courier.queue_index = i - 1
-                courier.target_position = pile.queue_slots[i - 1]
 
 class StaffController(CourierController):
     def __init__(self, sorting_area, carpark):

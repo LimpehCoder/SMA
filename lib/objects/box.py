@@ -34,23 +34,22 @@ class BoxPile:
 
     def generate_queue_positions(self, spacing=40, slots_per_side=10):
         x, y = self.position.x, self.position.y
+        print(f"[BoxPile] Center Position: ({x}, {y})")
+
         queue_slots = []
 
-        # Top row (horizontal line centered above the pile)
         for i in range(slots_per_side):
-            offset = (i - slots_per_side // 2) * spacing
-            queue_slots.append(Vector2(x + offset, y - spacing))
+            dx = i * spacing
+            # Generate slot i to the right
+            right_slot = Vector2(x + spacing + dx, y)
+            # Generate top slot i
+            top_slot = Vector2(x + dx, y - spacing)
+            # Generate bottom slot i
+            bottom_slot = Vector2(x + dx, y + spacing)
 
-        # Bottom row (horizontal line centered below the pile)
-        for i in range(slots_per_side):
-            offset = (i - slots_per_side // 2) * spacing
-            queue_slots.append(Vector2(x + offset, y + spacing))
+            queue_slots.extend([right_slot, top_slot, bottom_slot])
 
-        # Left row (horizontal line to the left of the pile, offset vertically to align center-ish)
-        for i in range(slots_per_side):
-            offset = (i - slots_per_side // 2) * spacing
-            queue_slots.append(Vector2(x - spacing, y + offset))
+            print(f"  [Slot R{i}] {right_slot}, [Slot T{i}] {top_slot}, [Slot B{i}] {bottom_slot}")
 
+        print(f"[QueueSlots] Total: {len(queue_slots)}")
         return queue_slots
-
-
