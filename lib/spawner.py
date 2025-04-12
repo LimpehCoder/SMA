@@ -44,21 +44,65 @@ def spawn_vans(vans_list):
 
 def spawn_cars(cars_list):
     cars_list.clear()
+
     spacing = 50
-    right_x = SCREEN_WIDTH - 50
+    grid_spacing = 10
     top_y = 60
-
-    car_cols = 8
-    car_rows = 5
     gap = 50
-    car_start_x = right_x
-    car_start_y = top_y + (5 * spacing) + gap  # below the vans
 
-    for row in range(car_rows):
-        for col in range(car_cols):
-            x = car_start_x - col * spacing
-            y = car_start_y + row * spacing
-            cars_list.append(Car(position=Vector2(x, y)))
+    full_cols = 8
+    half_cols = 4
+    car_rows = 5
+
+    right_x = SCREEN_WIDTH - 50  # right edge of vans
+    van_cols = 8
+    van_width = van_cols * spacing
+    van_left_edge = right_x - van_width
+
+    # --- Top row: half grid + full grid next to vans with one uniform gap
+    top_car_grids = [
+        {'cols': half_cols},  # placed first (leftmost)
+        {'cols': full_cols}   # placed second, flush with vans
+    ]
+
+    # Position full car grid's rightmost car to be just left of vans
+    full_car_grid_right_edge = van_left_edge - grid_spacing
+
+    # Compute the x of the rightmost car in the full car grid
+    car_start_x = full_car_grid_right_edge
+
+    for grid in reversed(top_car_grids):  # Place right-to-left
+        cols = grid['cols']
+        car_start_y = top_y
+
+        for row in range(car_rows):
+            for col in range(cols):
+                x = car_start_x - col * spacing
+                y = car_start_y + row * spacing
+                cars_list.append(Car(position=Vector2(x, y)))
+
+        # Move left for next grid
+        car_start_x -= cols * spacing + grid_spacing
+
+    # --- Bottom row: full, full, half aligned to vans
+    bottom_car_grids = [
+        {'cols': full_cols},   # rightmost (align with vans)
+        {'cols': full_cols},
+        {'cols': half_cols}
+    ]
+
+    car_start_y = top_y + (car_rows * spacing) + gap
+    car_start_x = right_x  # align bottom rightmost grid with vans
+
+    for grid in bottom_car_grids:
+        cols = grid['cols']
+        for row in range(car_rows):
+            for col in range(cols):
+                x = car_start_x - col * spacing
+                y = car_start_y + row * spacing
+                cars_list.append(Car(position=Vector2(x, y)))
+
+        car_start_x -= cols * spacing + grid_spacing
 
     print(f"Spawned {len(cars_list)} cars")
 
