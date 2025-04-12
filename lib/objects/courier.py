@@ -104,14 +104,44 @@ class Courier:
 
                 self.queue_index = None
                 self.queue_type = None
+    def _move_towards(self, target, dt, threshold=2):
+        direction = target - self.position
+        if direction.length() < threshold:
+            self.position = target
+            return True
+        direction.normalize_ip()
+        self.position += direction * self.speed * (dt / 1000.0)
+        return False
+    # Inside Courier
+    def move_to_carpark(self, current_scene, scene_manager, dt):
+        door_center = Vector2(
+            current_scene.door_to_carpark_rect.centerx,
+            current_scene.door_to_carpark_rect.centery
+        )
 
-    def deliver_box(self):
+        if self._move_towards(door_center, dt):
+            target_scene = current_scene.door_to_carpark_target
+            scene_manager.switch_scene(target_scene.name)
+            target_scene.receive_courier(self)
+            print(f"[Courier {self.id}] Entered Carpark")
+
+    def move_to_sorting(self, courier, dt):
+        scene = self.carpark  # Assuming this controller is managing the Carpark scene
+        door_center = Vector2(scene.door_to_sorting_rect.centerx, scene.door_to_sorting_rect.centery)
+        if self._move_towards(courier, door_center, dt):
+            # Arrived: transition to SortingArea
+            target_scene = scene.door_to_sorting_target
+            self.scene_manager.switch_scene(target_scene.name)
+            target_scene.receive_courier(courier)
+            print(f"[Courier {courier.id}] Entered SortingArea")
+
+    def load_box(self):
         if self.assigned_vehicle and self.carrying > 0:
-            self.assigned_vehicle.load_box()
+            self.assigned_vehicle.loaded_box()
             self.carrying = 0
             self.status = "IDLE"
             self.target_position = self.idle_position  # Return to idle spot
-            print(f"{self.id} delivered a box to vehicle")
+            print(f"{self.id} loaded a box to vehicle")
 
     def update(self, dt):
         if self.status in ["REPORTING", "MOVE_TO_QUEUE", "MOVE_TO_VEHICLE"]:

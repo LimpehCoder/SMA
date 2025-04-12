@@ -10,7 +10,7 @@ from objects.courier import StaffCourier, SubconCourier
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 
 class CourierController:
-    def __init__(self, sorting_area, carpark, courier_type):
+    def __init__(self, sorting_area, carpark, courier_type, scene_manager):
         self.sorting_area = sorting_area
         self.carpark = carpark
         self.courier_type = courier_type  # "Courier_Staff" or "Courier_Subcon"
@@ -18,6 +18,7 @@ class CourierController:
         self.last_day = None
         self.queue_index = None
         self.queue_type = None
+        self.scene_manager = scene_manager  # Add this line
 
         # State definitions
         self.states = {
@@ -25,8 +26,6 @@ class CourierController:
             "REPORTING": self._reporting,
             "IDLE": self._idle,
             "MOVE_TO_QUEUE": self._move_to_queue,
-            "MOVE_TO_SORTINGAREA": self._move_to_sorting,  # Same as move to queue for now
-            "MOVE_TO_CARPARK": self._move_to_carpark,
             "QUEUING": self._queuing,
             "SORTING": self._sorting,
             "LOADING": self._sorting,  # Same as sorting for now
@@ -120,19 +119,9 @@ class CourierController:
                 occupied[0] = None
                 courier.queue_index = None
                 courier.queue_type = None
-                self.update_all_queue_rows
-                self._move_to_carpark
-
-    def _move_to_carpark(self, courier, dt):
-        scene = self.sorting_area  # Assuming this controller is managing the SortingArea scene
-        door_center = Vector2(scene.door_to_carpark_rect.centerx, scene.door_to_carpark_rect.centery)
-        # Move courier toward door
-        if self._move_towards(courier, door_center, dt):
-            # Arrived: transition to Carpark
-            target_scene = scene.door_to_carpark_target
-            self.scene_manager.switch_scene(target_scene.name)
-            target_scene.receive_courier(courier)
-            print(f"[Courier {courier.id}] Entered Carpark")
+                self.update_all_queue_rows()
+                while courier.carrying > 0:
+                    courier.move_to_carpark(current_scene=self.sorting_area, scene_manager=self.scene_manager, dt=dt)
 
     def _sorting(self, courier, dt):
         if courier.assigned_vehicle:
@@ -141,16 +130,6 @@ class CourierController:
                 courier.assigned_vehicle.load_box()
                 courier.carrying = 0
                 courier.status = "IDLE"
-
-    def _move_to_sorting(self, courier, dt):
-        scene = self.carpark  # Assuming this controller is managing the Carpark scene
-        door_center = Vector2(scene.door_to_sorting_rect.centerx, scene.door_to_sorting_rect.centery)
-        if self._move_towards(courier, door_center, dt):
-            # Arrived: transition to SortingArea
-            target_scene = scene.door_to_sorting_target
-            self.scene_manager.switch_scene(target_scene.name)
-            target_scene.receive_courier(courier)
-            print(f"[Courier {courier.id}] Entered SortingArea")
 
     def _delivering(self, courier, dt):
         pass
@@ -183,8 +162,8 @@ class CourierController:
         return False
 
 class StaffController(CourierController):
-    def __init__(self, sorting_area, carpark):
-        super().__init__(sorting_area, carpark, courier_type="Courier_Staff")
+    def __init__(self, sorting_area, carpark, scene_manager):
+        super().__init__(sorting_area, carpark, courier_type="Courier_Staff", scene_manager=scene_manager)
 
     def spawn(self, day):
         staff = spawn_staff(day, self.carpark.vans)
@@ -193,8 +172,8 @@ class StaffController(CourierController):
         self.sorting_area.pending_couriers += staff
 
 class SubconController(CourierController):
-    def __init__(self, sorting_area, carpark):
-        super().__init__(sorting_area, carpark, courier_type="Courier_Subcon")
+    def __init__(self, sorting_area, carpark, scene_manager):
+        super().__init__(sorting_area, carpark, courier_type="Courier_Subcon", scene_manager=scene_manager)
 
     def spawn(self, day):
         subcons = spawn_subcon(day, self.carpark.cars)

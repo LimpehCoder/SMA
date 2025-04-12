@@ -21,9 +21,8 @@ sorting_area_scene = sortingarea_scene.SortingAreaScene(carpark)  # Instantiate 
 truck_controller = TruckController(sorting_area_scene)
 van_controller = VanController(carpark)
 car_controller = CarController(carpark)
-staff_controller = StaffController(sorting_area_scene, carpark)
-subcon_controller = SubconController(sorting_area_scene, carpark)  # Initialize subcon controller
-
+staff_controller = StaffController(sorting_area_scene, carpark, scene_manager)
+subcon_controller = SubconController(sorting_area_scene, carpark, scene_manager)
 
 # Initialize Pygame and simulation window
 pygame.init()  # Initialize all imported Pygame modules
@@ -53,6 +52,8 @@ scene_manager.add_scene("City_District2", citydistrict_scene.CityDistrictScene(2
 scene_manager.add_scene("City_District3", citydistrict_scene.CityDistrictScene(3))  # Add city district 3
 scene_manager.add_scene("Statistics", control_panel_stats.StatisticsScene())  # Add statistics scene
 scene_manager.switch_scene("SortingArea")  # Start on the Carpark scene
+sorting_area_scene.door_to_carpark_target = carpark
+carpark.door_to_sorting_target = sorting_area_scene
 
 # UI Manager and scene buttons
 ui_manager = pygame_gui.UIManager((SCREEN_WIDTH, SCREEN_HEIGHT))  # Setup GUI manager for handling buttons

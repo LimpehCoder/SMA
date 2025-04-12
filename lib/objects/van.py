@@ -21,7 +21,7 @@ class Van:
             direction.normalize_ip()  # Normalize to unit direction vector
             self.position += direction * self.speed * (dt / 1000.0)  # Move based on speed and time delta
 
-    def load_box(self):
+    def loaded_box(self):
         self.box_load += 1
 
     def unload_box(self):
