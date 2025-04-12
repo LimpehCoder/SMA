@@ -1,4 +1,4 @@
-import	pygame
+import pygame
 from pygame.math import Vector2  # Import Vector2 for 2D vector math
 import os
 import sys
@@ -15,7 +15,7 @@ class Courier:
         self.idle_position = idle_position
         self.target_position = idle_position  # Will change when moving
         self.grid_assigned = False
-        self.carrying = []
+        self.carrying = 0
         self.shift = None
         self.speed = 300
         self.queue_index = None
@@ -36,7 +36,7 @@ class Courier:
 
     def pickup_box(self, box_pile):
         if not box_pile.is_empty():
-            self.carrying.append("Box")
+            self.carrying += 1
             box_pile.decrement()
             box_pile.occupied_slots[self.queue_index] = None
             self.queue_index = None
@@ -46,9 +46,9 @@ class Courier:
             print(f"{self.id} picked up a box and is moving to vehicle")
 
     def deliver_box(self):
-        if self.assigned_vehicle and self.carrying:
+        if self.assigned_vehicle and self.carrying > 0:
             self.assigned_vehicle.load_box()
-            self.carrying.clear()
+            self.carrying = 0
             self.status = "IDLE"
             self.target_position = self.idle_position  # Return to idle spot
             print(f"{self.id} delivered a box to vehicle")
@@ -71,7 +71,7 @@ class Courier:
     def render(self, screen):
         screen.blit(self.image, self.position)
         if self.carrying:
-            label = self.font.render(str(len(self.carrying)), True, (255, 255, 255))
+            label = self.font.render(str(self.carrying), True, (255, 255, 255))
             screen.blit(label, (self.position.x + 8, self.position.y - 18))
 
 # --- Grid generator functions ---
