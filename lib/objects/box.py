@@ -1,20 +1,17 @@
-import random
+import sys
+import os
 from loadimage import load_image  # Import image loading function
 from pygame.math import Vector2  # Import Vector2 for 2D vector math
 import pygame
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import queue_manager
 
 class BoxPile:
     def __init__(self, position):
         self.position = Vector2(position)  # Central position of the pile
         self.count = 0  # Number of boxes currently in the pile
         self.font = pygame.font.SysFont("Arial", 20)  # Font for rendering the counter
-        self.right_queue_slots = self.generate_right_queue_positions()
-        self.top_queue_slots = self.generate_top_queue_positions()
-        self.bottom_queue_slots = self.generate_bottom_queue_positions()
-        self.right_occupied = [None] * len(self.right_queue_slots)
-        self.top_occupied = [None] * len(self.top_queue_slots)
-        self.bottom_occupied = [None] * len(self.bottom_queue_slots)
-
+        self.queue_manager = queue_manager.QueueManager(position, max_size=10)
 
     def set_count(self, count):
         self.count = max(0, count)  # Set pile count, ensuring non-negative
@@ -36,27 +33,3 @@ class BoxPile:
             # Draw counter above the box
             label = self.font.render(str(self.count), True, (255, 255, 255))
             screen.blit(label, (self.position.x + 20, self.position.y - 15))
-
-    def generate_right_queue_positions(self, spacing=40, slots=10):
-        x, y = self.position.x, self.position.y
-        positions = [Vector2(x + spacing + i * spacing, y) for i in range(slots)]
-        print("[Queue Slots] Right:")
-        for i, pos in enumerate(positions):
-            print(f"  R{i}: ({pos.x:.0f}, {pos.y:.0f})")
-        return positions
-
-    def generate_top_queue_positions(self, spacing=40, slots=10):
-        x, y = self.position.x, self.position.y
-        positions = [Vector2(x + i * spacing, y - spacing) for i in range(slots)]
-        print("[Queue Slots] Top:")
-        for i, pos in enumerate(positions):
-            print(f"  T{i}: ({pos.x:.0f}, {pos.y:.0f})")
-        return positions
-
-    def generate_bottom_queue_positions(self, spacing=40, slots=10):
-        x, y = self.position.x, self.position.y
-        positions = [Vector2(x + i * spacing, y + spacing) for i in range(slots)]
-        print("[Queue Slots] Bottom:")
-        for i, pos in enumerate(positions):
-            print(f"  B{i}: ({pos.x:.0f}, {pos.y:.0f})")
-        return positions
