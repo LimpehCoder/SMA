@@ -59,15 +59,21 @@ class CourierController:
 
     def report(self, dt, sim_clock):
         hour, minute, day = sim_clock.hour, sim_clock.minute, sim_clock.day
+
         if hour == 6 and minute == 0 and day != self.last_day:
             self.reset_daily_state(day)
         if hour == 7 and not self.spawned:
             self.spawn(day)
             self.spawned = True
         self.stream_pending(dt)
+
         for courier in self.sorting_area.couriers:
             if courier.type == self.courier_type:
                 self.states.get(courier.status, self._off_work)(courier, dt)
+
+        # Shift all queue rows after all couriers are updated
+        self.update_all_queue_rows()
+
             
     def _off_work(self, courier, dt):
         pass
@@ -120,6 +126,24 @@ class CourierController:
 
     def _delivering(self, courier, dt):
         pass
+
+    def update_all_queue_rows(self):
+        pile = self.sorting_area.box_pile
+        if not pile:
+            return
+        for queue, slots in [
+            (pile.right_occupied, pile.right_queue_slots),
+            (pile.top_occupied, pile.top_queue_slots),
+            (pile.bottom_occupied, pile.bottom_queue_slots),
+        ]:
+            for i in range(1, len(queue)):
+                if queue[i] and queue[i - 1] is None:
+                    courier = queue[i]
+                    queue[i] = None
+                    queue[i - 1] = courier
+                    courier.queue_index = i - 1
+                    courier.target_position = slots[i - 1]
+                    print(f"[Global Queue Shift] {courier.id} → {courier.queue_type}{i - 1}")
 
     def _move_towards(self, courier, target, dt):
         direction = target - courier.position
