@@ -7,7 +7,7 @@ from enum import Enum
 import pygame_gui
 
 # --- Import core components from simctrl.py ---
-from simctrl import SceneManager, SimulationClock, VanController, CarController, TruckController, StaffController,SubconController
+from lib.simctrl.simctrl import SceneManager, SimulationClock, VanController, CarController, TruckController, StaffController,SubconController
 from scenes import sortingarea_scene, carpark_scene, citydistrict_scene, control_panel_stats
 
 # Initialize scenes and controller

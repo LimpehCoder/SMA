@@ -10,7 +10,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 class Courier:
     def __init__(self, id, position, image_path):
         self.id = id
-        self.status = "Entering"
+        self.status = "Reporting"
         self.position = position
         self.target_position = Vector2(0, 0)
         self.grid_assigned = False
