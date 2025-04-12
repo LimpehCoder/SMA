@@ -59,14 +59,12 @@ class CourierController:
 
     def report(self, dt, sim_clock):
         hour, minute, day = sim_clock.hour, sim_clock.minute, sim_clock.day
-
         if hour == 6 and minute == 0 and day != self.last_day:
             self.reset_daily_state(day)
         if hour == 7 and not self.spawned:
             self.spawn(day)
             self.spawned = True
         self.stream_pending(dt)
-
         for courier in self.sorting_area.couriers:
             if courier.type == self.courier_type:
                 self.states.get(courier.status, self._off_work)(courier, dt)
@@ -85,7 +83,6 @@ class CourierController:
             success = courier.request_slot(self.sorting_area.box_pile)
             if success:
                 courier.slot_request_timer = 0  # Reset timer only on success
-
 
     def _move_to_queue(self, courier, dt):
         # Move toward assigned queue slot
@@ -112,29 +109,6 @@ class CourierController:
                 courier.queue_type = None
             else:
                 courier.move_up_queue(occupied, slots)
-
-
-    def cascade_queue_shift(self, queue_type):
-        """Triggers all couriers in a given row to move forward if possible."""
-        pile = self.sorting_area.box_pile
-
-        if queue_type == "R":
-            queue = pile.right_occupied
-            slots = pile.right_queue_slots
-        elif queue_type == "T":
-            queue = pile.top_occupied
-            slots = pile.top_queue_slots
-        elif queue_type == "B":
-            queue = pile.bottom_occupied
-            slots = pile.bottom_queue_slots
-        else:
-            return  # Invalid type
-
-        # Start from the back and try to shift each courier forward
-        for i in range(len(queue) - 1, 0, -1):
-            courier = queue[i]
-            if courier and queue[i - 1] is None:
-                courier.move_up_queue(queue, slots)
 
     def _sorting(self, courier, dt):
         if courier.assigned_vehicle:

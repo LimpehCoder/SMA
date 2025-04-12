@@ -19,6 +19,7 @@ class Courier:
         self.carrying = 0
         self.shift = None
         self.speed = 300
+        self.queue_type = None
         self.queue_index = None
         self.assigned_vehicle = None
         self.slot_request_timer = 0  # Timer to control how often slot is requested
