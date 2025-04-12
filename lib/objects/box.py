@@ -36,8 +36,6 @@ class BoxPile:
         x, y = self.position.x, self.position.y
         return [
             Vector2(x + spacing, y),           # Right
-            Vector2(x + spacing, y - spacing), # Top-right
-            Vector2(x + spacing, y + spacing), # Bottom-right
             Vector2(x, y - spacing),           # Top
             Vector2(x, y + spacing),           # Bottom
         ]

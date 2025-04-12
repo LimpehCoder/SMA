@@ -98,6 +98,7 @@ class StaffCourier(Courier):
             idle_pos = StaffCourier.idle_grid.pop(0)
         else:
             idle_pos = Vector2(1000, 100)  # Fallback position
+        print(f"[Spawn] Assigned idle position {idle_pos} to StaffCourier {id}")
         super().__init__(id=id, position=entry_point, image_path="courier_staff.png", idle_position=idle_pos)
         self.type = "Courier_Staff"
 
@@ -110,5 +111,6 @@ class SubconCourier(Courier):
             idle_pos = SubconCourier.idle_grid.pop(0)
         else:
             idle_pos = Vector2(1000, 600)  # Fallback idle position
+        print(f"[Spawn] Assigned idle position {idle_pos} to StaffCourier {id}")
         super().__init__(id=id, position=entry_point, image_path="courier_subcon.png", idle_position=idle_pos)
         self.type = "Courier_Subcon"

@@ -77,14 +77,11 @@ all_boxes = []  # Same
 undelivered_boxes = deque()  # A FIFO queue of undelivered boxes (for routing)
 stat_tracker = {}  # Dictionary to store simulation stats
 
+CourierController.initialize_idle_grids()
 # Main game loop
 running = True  # Flag to keep the game loop alive
 while running:
     dt = clock.tick(FPS)  # Cap FPS and retrieve time since last frame (in ms)
-    print("=== Courier States ===")
-    for courier in sorting_area_scene.couriers:
-        print(f"{courier.id}: {courier.status} at ({int(courier.position.x)}, {int(courier.position.y)})")
-    print("=======================")
     for event in pygame.event.get():  # Get all queued events (keyboard, mouse, etc.)
         if event.type == pygame.QUIT:
             running = False  # Quit the loop if the window is closed

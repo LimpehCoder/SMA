@@ -30,19 +30,14 @@ class CourierController:
         }
 
     @staticmethod
-    def generate_staff_idle_grid():
-        return [
+    def initialize_idle_grids():
+        StaffCourier.idle_grid = [
             Vector2(SCREEN_WIDTH - 50 - col * 40, 80 + row * 40)
-            for row in range(3)
-            for col in range(10)
+            for row in range(3) for col in range(10)
         ]
-
-    @staticmethod
-    def generate_subcon_idle_grid():
-        return [
+        SubconCourier.idle_grid = [
             Vector2(SCREEN_WIDTH - 50 - col * 40, SCREEN_HEIGHT - 200 + row * 40)
-            for row in range(3)
-            for col in range(10)
+            for row in range(3) for col in range(10)
         ]
 
     def reset_daily_state(self, day):
@@ -50,10 +45,6 @@ class CourierController:
         self.sorting_area.spawned_today = False
         self.last_day = day
 
-        if self.courier_type == "Courier_Staff":
-            StaffCourier.idle_grid = self.generate_staff_idle_grid()
-        elif self.courier_type == "Courier_Subcon":
-            SubconCourier.idle_grid = self.generate_subcon_idle_grid()
 
     def spawn(self, day):
         raise NotImplementedError("This method must be implemented by subclasses.")
