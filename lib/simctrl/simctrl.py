@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from spawner import spawn_vans, spawn_cars, spawn_staff, spawn_subcon, spawn_truck, CYCLE_TIMES
+from spawner import spawn_vans, spawn_cars, spawn_staff, spawn_subcon, spawn_truck, spawn_houses, CYCLE_TIMES
 from pygame.math import Vector2
 from objects.box import BoxPile  # Import BoxPile class from box module
 
@@ -112,3 +112,13 @@ class TruckController:
                 print("[TruckController] Truck has despawned.")
                 self.sorting_area.truck = None
                 self.active_truck = None
+
+class HouseController:
+    def __init__(self, city_district_scene):
+        self.city_district_scene = city_district_scene
+        self.initialized = False
+
+    def update(self, dt, clock):
+        if not self.initialized:
+            spawn_houses(self.city_district_scene.houses)
+            self.initialized = True

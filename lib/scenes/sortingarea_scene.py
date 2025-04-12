@@ -62,8 +62,6 @@ class SortingAreaScene(BaseScene):
 
     def render(self, screen):
         screen.fill(self.bg_color)  # Fill background
-        font = pygame.font.SysFont("Arial", 36)  # Set font
-        screen.blit(font.render(self.name, True, (255, 255, 255)), (50, 50))  # Draw scene name
         # Draw door rectangle
         pygame.draw.rect(screen, (0, 0, 0), self.door_to_carpark_rect)  # Yellow-ish portal
 

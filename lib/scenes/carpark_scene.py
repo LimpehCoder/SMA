@@ -24,9 +24,6 @@ class CarparkScene(BaseScene):  # Inherits from BaseScene
 
     def render(self, screen):  # Draws everything on this scene
         screen.fill(self.bg_color)  # Fill background with carpark color
-        font = pygame.font.SysFont("Arial", 48)  # Load font
-        label = font.render(self.name, True, (255, 255, 255))  # Render scene name text
-        screen.blit(label, (50, 50))  # Display scene name at top-left
         pygame.draw.rect(screen, (0, 0, 0), self.door_to_sorting_rect)  # Black portal to SortingArea
         door_font = pygame.font.SysFont("Arial", 20)
         door_label = door_font.render("TO SORTING", True, (255, 255, 255))
