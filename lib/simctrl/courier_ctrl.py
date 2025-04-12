@@ -4,19 +4,56 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from spawner import spawn_vans, spawn_cars, spawn_staff, spawn_subcon, spawn_truck, CYCLE_TIMES
 from pygame.math import Vector2
+from spawner import spawn_staff, spawn_subcon
+from objects.courier import StaffCourier, SubconCourier
+
+SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 
 class CourierController:
     def __init__(self, sorting_area, carpark, courier_type):
-        self.sorting_area = sorting_area  # Reference to the sorting area scene
-        self.carpark = carpark  # Reference to the carpark scene
-        self.courier_type = courier_type  # Type of courier: "Courier_Staff" or "Courier_Subcon"
-        self.spawned = False  # Whether couriers have been spawned today
-        self.last_day = None  # Last day spawn was triggered
+        self.sorting_area = sorting_area
+        self.carpark = carpark
+        self.courier_type = courier_type  # "Courier_Staff" or "Courier_Subcon"
+        self.spawned = False
+        self.last_day = None
+
+        # State definitions
+        self.states = {
+            "OFF_WORK": self._off_work,
+            "REPORTING": self._reporting,
+            "IDLE": self._idle,
+            "MOVE_TO_QUEUE": self._move_to_queue,
+            "QUEUING": self._queuing,
+            "SORTING": self._sorting,
+            "LOADING": self._sorting,  # Same as sorting for now
+            "DELIVERING": self._delivering  # Optional future state
+        }
+
+    @staticmethod
+    def generate_staff_idle_grid():
+        return [
+            Vector2(SCREEN_WIDTH - 50 - col * 40, 80 + row * 40)
+            for row in range(3)
+            for col in range(10)
+        ]
+
+    @staticmethod
+    def generate_subcon_idle_grid():
+        return [
+            Vector2(SCREEN_WIDTH - 50 - col * 40, SCREEN_HEIGHT - 200 + row * 40)
+            for row in range(3)
+            for col in range(10)
+        ]
 
     def reset_daily_state(self, day):
-        self.spawned = False  # Reset spawn flag
-        self.sorting_area.spawned_today = False  # Reset sorting area's spawn flag
-        self.last_day = day  # Update the last spawn day
+        self.spawned = False
+        self.sorting_area.spawned_today = False
+        self.last_day = day
+
+        if self.courier_type == "Courier_Staff":
+            StaffCourier.idle_grid = self.generate_staff_idle_grid()
+        elif self.courier_type == "Courier_Subcon":
+            SubconCourier.idle_grid = self.generate_subcon_idle_grid()
 
     def spawn(self, day):
         raise NotImplementedError("This method must be implemented by subclasses.")
@@ -25,17 +62,11 @@ class CourierController:
         self.sorting_area.courier_spawn_timer += dt
         if self.sorting_area.pending_couriers and self.sorting_area.courier_spawn_timer >= self.sorting_area.courier_spawn_interval:
             next_courier = self.sorting_area.pending_couriers.pop(0)
-            next_courier.status = "Reporting"  # Initial individual state
             self.sorting_area.couriers.append(next_courier)
             self.sorting_area.courier_spawn_timer = 0
 
     def report(self, dt, sim_clock):
         hour, minute, day = sim_clock.hour, sim_clock.minute, sim_clock.day
-
-        if not self.sorting_area.couriers:
-            self.sorting_area.system_state = "Off_Work"
-        else:
-            self.sorting_area.system_state = "Active"
 
         if hour == 6 and minute == 0 and day != self.last_day:
             self.reset_daily_state(day)
@@ -47,29 +78,65 @@ class CourierController:
         self.stream_pending(dt)
 
         for courier in self.sorting_area.couriers:
-            if courier.type != self.courier_type:
-                continue
+            if courier.type == self.courier_type:
+                self.states.get(courier.status, self._off_work)(courier, dt)
 
-            if courier.status == "Reporting":
-                courier.status = "Forming"
-                courier.grid_assigned = False
+    def _off_work(self, courier, dt):
+        pass
 
-            elif courier.status == "Forming" and not courier.grid_assigned:
-                self.sorting_area.assign_idle_positions()
+    def _reporting(self, courier, dt):
+        if self._move_towards(courier, courier.idle_position, dt):
+            courier.status = "IDLE"
 
-            elif courier.status == "Ready":
-                courier.status = "Idle"
+    def _idle(self, courier, dt):
+        pile = self.sorting_area.box_pile
+        if pile and courier.queue_index is None:
+            courier.request_slot(pile)
+            courier.status = "MOVE_TO_QUEUE"
 
-            elif courier.status == "Idle" and self.sorting_area.box_pile:
-                courier.status = "Move_to_Queue"
+    def _move_to_queue(self, courier, dt):
+        if self._move_towards(courier, courier.target_position, dt):
+            courier.status = "QUEUING"
 
-            elif courier.status == "Move_to_Queue" and courier.queue_index is not None:
-                courier.status = "Queuing"
+    def _queuing(self, courier, dt):
+        if courier.queue_index == 0 and not self.sorting_area.box_pile.is_empty():
+            if (courier.position - courier.target_position).length() < 5:
+                courier.carrying.append("Box")
+                courier.status = "SORTING"
+                self.sorting_area.box_pile.decrement()
+                self.sorting_area.box_pile.occupied_slots[courier.queue_index] = None
+                courier.queue_index = None
+                self.shift_queue()
 
-            elif courier.status == "Sorting":
-                courier.target_position = self.sorting_area.door_to_carpark_rect.center
+    def _sorting(self, courier, dt):
+        if courier.assigned_vehicle:
+            courier.target_position = courier.assigned_vehicle.target_position
+            if self._move_towards(courier, courier.target_position, dt):
+                courier.assigned_vehicle.load_box()
+                courier.carrying.clear()
+                courier.status = "IDLE"
 
-            courier.update(dt)
+    def _delivering(self, courier, dt):
+        pass
+
+    def _move_towards(self, courier, target, dt):
+        direction = target - courier.position
+        if direction.length() < 2:
+            courier.position = target
+            return True
+        direction.normalize_ip()
+        courier.position += direction * courier.speed * (dt / 1000.0)
+        return False
+
+    def shift_queue(self):
+        pile = self.sorting_area.box_pile
+        for i in range(1, len(pile.occupied_slots)):
+            courier = pile.occupied_slots[i]
+            if courier and courier.type == self.courier_type:
+                pile.occupied_slots[i] = None
+                pile.occupied_slots[i - 1] = courier
+                courier.queue_index = i - 1
+                courier.target_position = pile.queue_slots[i - 1]
 
 class StaffController(CourierController):
     def __init__(self, sorting_area, carpark):
@@ -77,6 +144,8 @@ class StaffController(CourierController):
 
     def spawn(self, day):
         staff = spawn_staff(day, self.carpark.vans)
+        for courier in staff:
+            courier.status = "REPORTING"
         self.sorting_area.pending_couriers += staff
 
 class SubconController(CourierController):
@@ -85,4 +154,6 @@ class SubconController(CourierController):
 
     def spawn(self, day):
         subcons = spawn_subcon(day, self.carpark.cars)
+        for courier in subcons:
+            courier.status = "REPORTING"
         self.sorting_area.pending_couriers += subcons

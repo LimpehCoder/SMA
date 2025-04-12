@@ -8,11 +8,12 @@ from loadimage import load_image  # Import image loading function
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 
 class Courier:
-    def __init__(self, id, position, image_path):
+    def __init__(self, id, position, image_path, idle_position):
         self.id = id
-        self.status = "Reporting"
+        self.status = "REPORTING"
         self.position = position
-        self.target_position = Vector2(0, 0)
+        self.idle_position = idle_position
+        self.target_position = idle_position  # Will change when moving
         self.grid_assigned = False
         self.carrying = []
         self.shift = None
@@ -28,7 +29,7 @@ class Courier:
                 box_pile.occupied_slots[i] = self
                 self.target_position = box_pile.queue_slots[i]
                 self.queue_index = i
-                self.status = "Move_to_Queue"
+                self.status = "MOVE_TO_QUEUE"
                 print(f"{self.id} assigned to queue slot {i}")
                 return True
         return False
@@ -39,7 +40,7 @@ class Courier:
             box_pile.decrement()
             box_pile.occupied_slots[self.queue_index] = None
             self.queue_index = None
-            self.status = "Move_to_Vehicle"
+            self.status = "MOVE_TO_VEHICLE"
             if self.assigned_vehicle:
                 self.target_position = self.assigned_vehicle.target_position
             print(f"{self.id} picked up a box and is moving to vehicle")
@@ -48,20 +49,20 @@ class Courier:
         if self.assigned_vehicle and self.carrying:
             self.assigned_vehicle.load_box()
             self.carrying.clear()
-            self.status = "Idle"
+            self.status = "IDLE"
+            self.target_position = self.idle_position  # Return to idle spot
             print(f"{self.id} delivered a box to vehicle")
 
     def update(self, dt):
-        if self.status in ["Entering", "Forming", "Move_to_Queue", "Move_to_Vehicle"]:
+        if self.status in ["REPORTING", "MOVE_TO_QUEUE", "MOVE_TO_VEHICLE"]:
             direction = self.target_position - self.position
             if direction.length() < 2:
-                if self.status == "Entering":
-                    self.status = "Idle"
-                elif self.status == "Forming":
-                    self.status = "Ready"
-                elif self.status == "Move_to_Queue":
-                    self.status = "Queuing"
-                elif self.status == "Move_to_Vehicle":
+                self.position = self.target_position
+                if self.status == "REPORTING":
+                    self.status = "IDLE"
+                elif self.status == "MOVE_TO_QUEUE":
+                    self.status = "QUEUING"
+                elif self.status == "MOVE_TO_VEHICLE":
                     self.deliver_box()
             else:
                 direction.normalize_ip()
@@ -73,14 +74,41 @@ class Courier:
             label = self.font.render(str(len(self.carrying)), True, (255, 255, 255))
             screen.blit(label, (self.position.x + 8, self.position.y - 18))
 
+# --- Grid generator functions ---
+def generate_staff_idle_grid():
+    return [
+        Vector2(SCREEN_WIDTH - 50 - col * 40, 80 + row * 40)
+        for row in range(3)
+        for col in range(10)
+    ]
+
+def generate_subcon_idle_grid():
+    return [
+        Vector2(SCREEN_WIDTH - 50 - col * 40, SCREEN_HEIGHT - 200 + row * 40)
+        for row in range(3)
+        for col in range(10)
+    ]
+
 class StaffCourier(Courier):
+    idle_grid = []  # This should be populated at the start of each day
+
     def __init__(self, id):
-        entry_point = Vector2(640, -40)  # From top
-        super().__init__(id=id, position=entry_point, image_path="courier_staff.png")
+        entry_point = Vector2(640, -40)  # Entry from the top
+        if StaffCourier.idle_grid:
+            idle_pos = StaffCourier.idle_grid.pop(0)
+        else:
+            idle_pos = Vector2(1000, 100)  # Fallback position
+        super().__init__(id=id, position=entry_point, image_path="courier_staff.png", idle_position=idle_pos)
         self.type = "Courier_Staff"
 
 class SubconCourier(Courier):
+    idle_grid = []  # Define class-level grid for subcontract couriers
+
     def __init__(self, id):
-        entry_point = Vector2(640, SCREEN_HEIGHT + 40)  # From bottom
-        super().__init__(id=id, position=entry_point, image_path="courier_subcon.png")
+        entry_point = Vector2(640, SCREEN_HEIGHT + 40)  # Enters from bottom
+        if SubconCourier.idle_grid:
+            idle_pos = SubconCourier.idle_grid.pop(0)
+        else:
+            idle_pos = Vector2(1000, 600)  # Fallback idle position
+        super().__init__(id=id, position=entry_point, image_path="courier_subcon.png", idle_position=idle_pos)
         self.type = "Courier_Subcon"
