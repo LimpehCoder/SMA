@@ -22,7 +22,7 @@ class SortingAreaScene(BaseScene):
         self.pending_couriers = []  # Queue of couriers waiting to enter the canvas
         self.courier_spawn_timer = 0  # Timer used to space out entry of couriers
         self.courier_spawn_interval = 300  # Delay between courier entries (ms)
-        self.door_to_carpark_rect = pygame.Rect(SCREEN_WIDTH - 100, SCREEN_HEIGHT // 2 - 32, 48, 64)
+        self.door_to_carpark_rect = pygame.Rect(SCREEN_WIDTH - 100, SCREEN_HEIGHT // 2 - 32, 32, 32)
 
     def assign_idle_positions(self):
         top_start_x = SCREEN_WIDTH - 50  # Starting X position for staff couriers (top right of screen)
@@ -63,7 +63,7 @@ class SortingAreaScene(BaseScene):
     def render(self, screen):
         screen.fill(self.bg_color)  # Fill background
         # Draw door rectangle
-        pygame.draw.rect(screen, (0, 0, 0), self.door_to_carpark_rect)  # Yellow-ish portal
+        pygame.draw.rect(screen, (0, 0, 0), self.door_to_carpark_rect)  # Black portal
 
         # Label for the door
         door_font = pygame.font.SysFont("Arial", 20)
