@@ -146,20 +146,25 @@ def spawn_truck(sorting_area, cycle_name):
 
 def spawn_houses(houses_list):
     houses_list.clear()
-    spacing = 40
-    right_x = SCREEN_WIDTH -30
-    top_y = 40
+    
+    col_spacing = 42  # Horizontal spacing between columns
+    row_spacing = 30  # Vertical spacing between rows
+
+    right_x = SCREEN_WIDTH - 30
+    top_y = 25
+
     house_cols = 25
-    house_rows = 15
+    house_rows = 20
+
     house_start_x = right_x
     house_start_y = top_y
 
     for row in range(house_rows):
         for col in range(house_cols):
-            x = house_start_x - col * spacing
-            y = house_start_y + row * spacing
+            x = house_start_x - col * col_spacing
+            y = house_start_y + row * row_spacing
             house = House()
-            house.position = Vector2(x, y)  # Assign position after creation
+            house.position = Vector2(x, y)
             houses_list.append(house)
 
     print(f"Spawned {len(houses_list)} houses")

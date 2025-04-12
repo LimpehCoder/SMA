@@ -11,7 +11,7 @@ class Van:
         self.occupied = False  # Whether a courier has claimed this van
         self.driver = None  # Reference to the assigned courier
         self.speed = 120  # Movement speed in pixels per second
-        self.image = load_image("van.png", (48, 32))  # Load and scale the van image
+        self.image = load_image("van.png", (18, 12))  # Load and scale the van image
         self.box_load = 0  # Start with zero boxes loaded
         self.font = pygame.font.SysFont("Arial", 16)
 

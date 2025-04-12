@@ -9,7 +9,7 @@ class Car:
         self.position = Vector2(SCREEN_WIDTH + 100, position.y)  # Start off-screen right
         self.occupied = False  # Whether a courier has claimed this car
         self.driver = None  # Reference to the assigned courier
-        self.image = load_image("car.png", (32, 24))  # Load and scale the car image
+        self.image = load_image("car.png", (12, 9))  # Load and scale the car image
         self.target_position = Vector2(position)  # The in-scene location the van should drive to
         self.speed = 120  # Movement speed in pixels per second
         self.box_load = 0  # Start with zero boxes loaded

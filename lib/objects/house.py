@@ -7,7 +7,7 @@ class House:
     def __init__(self, scene_name="Neighborhood"):
         self.position = None  # Will be set later
         self.scene = scene_name
-        self.image = load_image("house.png", (20, 20))
+        self.image = load_image("house.png", (18, 18))
         self.font = pygame.font.SysFont("Arial", 16)
         self.occupied = False  # Renamed for clarity (optional)
 

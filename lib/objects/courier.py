@@ -25,7 +25,7 @@ class Courier:
         self.slot_request_timer = 0  # Timer to control how often slot is requested
         self.slot_request_interval = 100  # milliseconds (1 second)
         self.font = pygame.font.SysFont("Arial", 16)
-        self.image = load_image(image_path, (32, 32))
+        self.image = load_image(image_path, (18, 18))
 
     def request_slot(self, box_pile):
         if box_pile is None:
