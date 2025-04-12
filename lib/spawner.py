@@ -8,7 +8,7 @@ from pygame.math import Vector2
 from objects.courier import Courier, StaffCourier, SubconCourier  # Import Courier class from courier module
 from objects.van import Van
 from objects.car import Car  # Import vehicle classes from vehicles module
-from objects.box import Box  # Import Box class from box module
+from objects.box import BoxPile  # Import Box class from box module
 from objects.truck import Truck  # Import Truck class from truck module
 
 CYCLE_TIMES = {
@@ -95,6 +95,6 @@ def spawn_subcon(day, available_cars):
         result.append(courier)
     return result
 
-def spawn_truck(cycle_name):
-    start_y = 300  # Y-position where the truck will enter horizontally
-    return Truck(start_y=start_y, cycle_name=cycle_name)
+def spawn_truck(sorting_area, cycle_name):
+    start_y = 300  # Vertical lane the truck uses to enter
+    return Truck(sorting_area=sorting_area, start_y=start_y, cycle_name=cycle_name)

@@ -4,7 +4,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from spawner import spawn_vans, spawn_cars, spawn_staff, spawn_subcon, spawn_truck, CYCLE_TIMES
 from pygame.math import Vector2
-from objects.box import BoxPile  # Import BoxPile class from box module
 
 class CourierController:
     def __init__(self, sorting_area, carpark, courier_type):

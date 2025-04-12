@@ -80,9 +80,10 @@ class TruckController:
         for cycle_name in ["ACycle", "BCycle"]:
             if hour == CYCLE_TIMES[cycle_name] and cycle_name not in self.sorting_area.spawned_cycles:
                 print(f"[TruckController] Spawning truck for {cycle_name} at hour {hour}")
-                self.active_truck = spawn_truck(cycle_name)
+                self.active_truck = spawn_truck(self.sorting_area, cycle_name)  # pass sorting_area
                 self.sorting_area.truck = self.active_truck
                 self.sorting_area.spawned_cycles.add(cycle_name)
+
 
         # --- Update truck animation and delivery logic ---
         if self.active_truck:
