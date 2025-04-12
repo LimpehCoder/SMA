@@ -32,10 +32,25 @@ class BoxPile:
             label = self.font.render(str(self.count), True, (255, 255, 255))
             screen.blit(label, (self.position.x + 20, self.position.y - 15))
 
-    def generate_queue_positions(self, spacing=40):
+    def generate_queue_positions(self, spacing=40, slots_per_side=10):
         x, y = self.position.x, self.position.y
-        return [
-            Vector2(x + spacing, y),           # Right
-            Vector2(x, y - spacing),           # Top
-            Vector2(x, y + spacing),           # Bottom
-        ]
+        queue_slots = []
+
+        # Top row (horizontal line centered above the pile)
+        for i in range(slots_per_side):
+            offset = (i - slots_per_side // 2) * spacing
+            queue_slots.append(Vector2(x + offset, y - spacing))
+
+        # Bottom row (horizontal line centered below the pile)
+        for i in range(slots_per_side):
+            offset = (i - slots_per_side // 2) * spacing
+            queue_slots.append(Vector2(x + offset, y + spacing))
+
+        # Left row (horizontal line to the left of the pile, offset vertically to align center-ish)
+        for i in range(slots_per_side):
+            offset = (i - slots_per_side // 2) * spacing
+            queue_slots.append(Vector2(x - spacing, y + offset))
+
+        return queue_slots
+
+

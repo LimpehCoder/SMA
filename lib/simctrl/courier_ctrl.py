@@ -90,12 +90,14 @@ class CourierController:
             courier.status = "QUEUING"
 
     def _queuing(self, courier, dt):
-        if courier.queue_index == 0 and not self.sorting_area.box_pile.is_empty():
+        pile = self.sorting_area.box_pile
+        if courier.queue_index == 0 and not pile.is_empty():
             if (courier.position - courier.target_position).length() < 5:
-                courier.carrying.append("Box")
+                for _ in range(5):  # Attempt to pick up 5 boxes
+                    if not pile.is_empty():
+                        courier.pickup_box(pile)  # Handle count, status, movement internally
                 courier.status = "SORTING"
-                self.sorting_area.box_pile.decrement()
-                self.sorting_area.box_pile.occupied_slots[courier.queue_index] = None
+                pile.occupied_slots[0] = None  # Clear the slot
                 courier.queue_index = None
                 self.shift_queue()
 
