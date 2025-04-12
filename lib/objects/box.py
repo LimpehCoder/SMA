@@ -39,12 +39,24 @@ class BoxPile:
 
     def generate_right_queue_positions(self, spacing=40, slots=10):
         x, y = self.position.x, self.position.y
-        return [Vector2(x + spacing + i * spacing, y) for i in range(slots)]
+        positions = [Vector2(x + spacing + i * spacing, y) for i in range(slots)]
+        print("[Queue Slots] Right:")
+        for i, pos in enumerate(positions):
+            print(f"  R{i}: ({pos.x:.0f}, {pos.y:.0f})")
+        return positions
 
     def generate_top_queue_positions(self, spacing=40, slots=10):
         x, y = self.position.x, self.position.y
-        return [Vector2(x + i * spacing, y - spacing) for i in range(slots)]
+        positions = [Vector2(x + i * spacing, y - spacing) for i in range(slots)]
+        print("[Queue Slots] Top:")
+        for i, pos in enumerate(positions):
+            print(f"  T{i}: ({pos.x:.0f}, {pos.y:.0f})")
+        return positions
 
     def generate_bottom_queue_positions(self, spacing=40, slots=10):
         x, y = self.position.x, self.position.y
-        return [Vector2(x + i * spacing, y + spacing) for i in range(slots)]
+        positions = [Vector2(x + i * spacing, y + spacing) for i in range(slots)]
+        print("[Queue Slots] Bottom:")
+        for i, pos in enumerate(positions):
+            print(f"  B{i}: ({pos.x:.0f}, {pos.y:.0f})")
+        return positions

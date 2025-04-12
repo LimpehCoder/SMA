@@ -75,9 +75,7 @@ class Courier:
             self.status = "MOVE_TO_QUEUE"
             print(f"[Queue Assign] {self.id} → B{i}")
             return True
-
         return False  # Shouldn't be reached
-
 
     def move_up_queue(self, queue_list, slot_list):
         if self.queue_index is None or self.queue_index == 0:

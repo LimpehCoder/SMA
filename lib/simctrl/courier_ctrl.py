@@ -25,6 +25,8 @@ class CourierController:
             "REPORTING": self._reporting,
             "IDLE": self._idle,
             "MOVE_TO_QUEUE": self._move_to_queue,
+            "MOVE_TO_SORTINGAREA": self._move_to_sorting,  # Same as move to queue for now
+            "MOVE_TO_CARPARK": self._move_to_carpark,
             "QUEUING": self._queuing,
             "SORTING": self._sorting,
             "LOADING": self._sorting,  # Same as sorting for now
@@ -106,15 +108,31 @@ class CourierController:
         else:
             return
 
-        # Arrived at slot
-        if (courier.position - courier.target_position).length() < 5:
-            if courier.queue_index == 0:
+        # Check if courier is at front of their queue and in position
+        if courier.queue_index == 0 and (courier.position - courier.target_position).length() < 5:
+            # Attempt to pick up until they have 5 or the pile is empty
+            while courier.carrying < 5 and not pile.is_empty():
                 courier.pickup_box(pile)
+
+            # If courier is full, leave the queue
+            if courier.carrying >= 5:
+                courier.status = "SORTING"
                 occupied[0] = None
                 courier.queue_index = None
                 courier.queue_type = None
-            else:
-                courier.move_up_queue(occupied, slots)
+                self.update_all_queue_rows
+                self._move_to_carpark
+
+    def _move_to_carpark(self, courier, dt):
+        scene = self.sorting_area  # Assuming this controller is managing the SortingArea scene
+        door_center = Vector2(scene.door_to_carpark_rect.centerx, scene.door_to_carpark_rect.centery)
+        # Move courier toward door
+        if self._move_towards(courier, door_center, dt):
+            # Arrived: transition to Carpark
+            target_scene = scene.door_to_carpark_target
+            self.scene_manager.switch_scene(target_scene.name)
+            target_scene.receive_courier(courier)
+            print(f"[Courier {courier.id}] Entered Carpark")
 
     def _sorting(self, courier, dt):
         if courier.assigned_vehicle:
@@ -123,6 +141,16 @@ class CourierController:
                 courier.assigned_vehicle.load_box()
                 courier.carrying = 0
                 courier.status = "IDLE"
+
+    def _move_to_sorting(self, courier, dt):
+        scene = self.carpark  # Assuming this controller is managing the Carpark scene
+        door_center = Vector2(scene.door_to_sorting_rect.centerx, scene.door_to_sorting_rect.centery)
+        if self._move_towards(courier, door_center, dt):
+            # Arrived: transition to SortingArea
+            target_scene = scene.door_to_sorting_target
+            self.scene_manager.switch_scene(target_scene.name)
+            target_scene.receive_courier(courier)
+            print(f"[Courier {courier.id}] Entered SortingArea")
 
     def _delivering(self, courier, dt):
         pass
