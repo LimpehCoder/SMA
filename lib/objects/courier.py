@@ -35,7 +35,7 @@ class Courier:
         available_queues = [
             direction
             for direction in Directions
-            for queue in [box_pile.queue_manager.get_queue(self.id, direction=direction)]
+            for queue in [box_pile.queue_manager.get_queue(direction=direction)]
             if queue is not None
         ]
 

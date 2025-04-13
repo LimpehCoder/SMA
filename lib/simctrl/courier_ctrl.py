@@ -6,6 +6,7 @@ from spawner import spawn_vans, spawn_cars, spawn_staff, spawn_subcon, spawn_tru
 from pygame.math import Vector2
 from spawner import spawn_staff, spawn_subcon
 from objects.courier import StaffCourier, SubconCourier
+from objects.queue_manager import Directions
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 
@@ -138,19 +139,33 @@ class CourierController:
         pile = self.sorting_area.box_pile
         if not pile:
             return
-        for queue, slots in [
-            (pile.right_occupied, pile.right_queue_slots),
-            (pile.top_occupied, pile.top_queue_slots),
-            (pile.bottom_occupied, pile.bottom_queue_slots),
-        ]:
-            for i in range(1, len(queue)):
-                if queue[i] and queue[i - 1] is None:
-                    courier = queue[i]
-                    queue[i] = None
-                    queue[i - 1] = courier
+        for direction in [Directions.RIGHT, Directions.UP, Directions.DOWN]:
+            queue = pile.queue_manager.get_queue(direction)
+            slots = pile.queue_manager.queue_positions[direction]
+
+            if queue is None:
+                continue  # Skip if queue hasn't been generated
+
+            with queue.mutex:  # To safely iterate over Queue contents
+                queue_list = list(queue.queue)
+
+            for i in range(1, len(queue_list)):
+                courier = queue_list[i]
+                if courier and queue_list[i - 1] is None:
+                    # Move courier forward in the queue
+                    queue_list[i] = None
+                    queue_list[i - 1] = courier
                     courier.queue_index = i - 1
                     courier.target_position = slots[i - 1]
-                    print(f"[Global Queue Shift] {courier.id} → {courier.queue_type}{i - 1}")
+                    print(f"[Global Queue Shift] {courier.id} → {direction.name}{i - 1}")
+
+        # Reassign modified queue
+        with queue.mutex:
+            queue.queue.clear()
+            for item in queue_list:
+                if item is not None:
+                    queue.queue.append(item)
+
 
     def _move_towards(self, courier, target, dt):
         direction = target - courier.position
